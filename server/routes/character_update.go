@@ -19,6 +19,7 @@ func updateCharacter(repos *repository.Container) gin.HandlerFunc {
 		}
 		var req struct {
 			Name         string  `json:"name"`
+			CurrentWorld *string `json:"currentWorld"`
 			IsNPC        *bool   `json:"isNPC"`
 			CurrentRoom  *int    `json:"currentRoomId"`
 			StartingRoom *int    `json:"startingRoomId"`
@@ -42,7 +43,7 @@ func updateCharacter(repos *repository.Container) gin.HandlerFunc {
 			return
 		}
 		updates := repository.CharacterUpdates{
-			Name: strPtr(req.Name), Gender: strPtr(req.Gender), Description: strPtr(req.Description),
+			Name: strPtr(req.Name), CurrentWorld: req.CurrentWorld, Gender: strPtr(req.Gender), Description: strPtr(req.Description),
 			IsNPC: req.IsNPC, CurrentRoomID: req.CurrentRoom, StartingRoomID: req.StartingRoom,
 			RespawnRoomID: req.RespawnRoom, IsAdmin: req.IsAdmin, IsTest: req.IsTest,
 			Level: req.Level, Xp: req.XP, Hitpoints: req.HP, MaxHitpoints: req.MaxHP,

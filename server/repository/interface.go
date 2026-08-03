@@ -165,6 +165,7 @@ type DialogNodeRepo interface {
 	Get(ctx context.Context, id string) (*db.DialogNode, error)
 	List(ctx context.Context, worldID string) ([]*db.DialogNode, error)
 	ListByTemplate(ctx context.Context, templateID string) ([]*db.DialogNode, error)
+	ListByTemplateAndWorld(ctx context.Context, templateID, worldID string) ([]*db.DialogNode, error)
 	Create(ctx context.Context, input CreateDialogNodeInput) (*db.DialogNode, error)
 	Update(ctx context.Context, id string, updates DialogNodeUpdates) (*db.DialogNode, error)
 	Delete(ctx context.Context, id string) error
@@ -354,6 +355,7 @@ type CreateCharacterInput struct {
 
 type CharacterUpdates struct {
 	Name            *string
+	CurrentWorld    *string
 	CurrentRoomID   *int
 	StartingRoomID  *int
 	RespawnRoomID   *int
@@ -539,6 +541,8 @@ type CreateNPCTemplateInput struct {
 	Greeting         string
 	RespawnRooms     []string
 	RespawnCooldown  *int
+	GoldMin          int
+	GoldMax          int
 	WorldID          string
 }
 
@@ -555,6 +559,8 @@ type NPCTemplateUpdates struct {
 	Greeting         *string
 	RespawnRooms     *[]string
 	RespawnCooldown  *int
+	GoldMin          *int
+	GoldMax          *int
 	WorldID          *string
 }
 

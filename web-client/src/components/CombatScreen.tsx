@@ -39,6 +39,8 @@ export default function CombatScreen({
   onPotion,
   onFlee,
 }: Props) {
+  // console.log is disabled in production - enable for debugging
+  // console.log(`[CombatScreen] Render - playerMana=${playerMana}, playerMaxMana=${playerMaxMana}`);
   return (
     <div className="shrink-0 bg-surface border-t border-border flex flex-col" style={{ maxHeight: "60vh" }}>
       {/* Header */}
@@ -51,8 +53,8 @@ export default function CombatScreen({
         )}
       </div>
 
-      {/* Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-4">
+      {/* Sticky Vitals/Target Section - Fixed at top, above scrollable combat log */}
+      <div className="shrink-0 px-3 py-3 space-y-4 border-b border-border/50 bg-surface">
         <CombatTargetList targets={targets} />
         <CombatVitals
           hp={playerHP}
@@ -62,8 +64,10 @@ export default function CombatScreen({
           mana={playerMana}
           maxMana={playerMaxMana}
         />
-        <CombatLog entries={combatLog} />
       </div>
+
+      {/* Scrollable Combat Log - Auto-scrolls to bottom */}
+      <CombatLog entries={combatLog} />
 
       {/* Action Bar */}
       <CombatActionBar

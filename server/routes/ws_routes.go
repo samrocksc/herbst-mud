@@ -63,10 +63,11 @@ type VitalsPayload struct {
 
 // CharInfo represents a visible character in a room.
 type CharInfo struct {
-	Name    string `json:"name"`
-	Type    string `json:"type"` // "npc" | "player"
-	ID      int    `json:"id"`
-	Hostile bool   `json:"hostile"`
+	Name          string `json:"name"`
+	Type          string `json:"type"` // "npc" | "player"
+	ID            int    `json:"id"`
+	Hostile       bool   `json:"hostile"`
+	NpcTemplateID string `json:"npc_template_id,omitempty"`
 }
 
 // ItemInfo represents a visible item in a room.
@@ -219,10 +220,11 @@ func buildRoomScreen(ctx context.Context, roomID int, worldID string, repos *rep
 				}
 			}
 			chars = append(chars, CharInfo{
-				Name:    ch.Name,
-				Type:    chType,
-				ID:      ch.ID,
-				Hostile: hostile,
+				Name:          ch.Name,
+				Type:          chType,
+				ID:            ch.ID,
+				Hostile:       hostile,
+				NpcTemplateID: ch.NpcTemplateID,
 			})
 		}
 	}
@@ -896,7 +898,14 @@ func handleCommand(cmd string, wsc *WSConn, repos *repository.Container, client 
 		return "You are alone in the void. (Player list coming soon.)"
 
 	case "help":
-		return "Available commands: look, who, help, quit, examine <target>, directions (n/s/e/w/u/d), take <item>, drop <item>. (More coming in Phase 6.)"
+		return "Available commands: look, who, help, quit, examine <target>, directions (n/s/e/w/u/d), take <item>, drop <item>, shop <npc>. (More coming in Phase 6.)"
+
+	case "shop":
+		target := strings.TrimPrefix(cmd, "shop ")
+		if target == "" || target == "shop" {
+			return "Shop with whom? (shop <npc_name>)"
+		}
+		return tryShop(target, wsc, repos)
 
 	default:
 		return fmt.Sprintf("You typed: \"%s\". (Command not yet implemented.)", cmd)
@@ -991,7 +1000,7 @@ func tryTalk(targetName string, wsc *WSConn, repos *repository.Container) string
 
 	// If the NPC template has dialog nodes, open the conversation overlay
 	// with the entry node (or the first node if no entry is marked).
-	nodes, err := repos.DialogNode.ListByTemplate(ctx, tmpl.ID)
+	nodes, err := repos.DialogNode.ListByTemplateAndWorld(ctx, tmpl.ID, char.CurrentWorld)
 	if err != nil {
 		dblog.Error("tryTalk: failed to list dialog nodes", err, slog.String("template_id", tmpl.ID))
 	} else if len(nodes) > 0 {
@@ -1112,4 +1121,119 @@ func tryAttack(targetName string, wsc *WSConn, repos *repository.Container, clie
 	}
 
 	return msg
+}
+
+// tryShop handles the "shop <npc_name>" command. It finds the NPC in the room,
+// looks up the ShopTemplate linked to its NPC template, and sends a shop screen
+// event to the client with the shop's items.
+func tryShop(targetName string, wsc *WSConn, repos *repository.Container) string {
+	ctx := context.Background()
+
+	char, err := repos.Character.Get(ctx, wsc.CharacterID)
+	if err != nil {
+		return "Cannot find your character."
+	}
+
+	// Find NPC in room matching the name
+	roomChars, err := repos.Character.ListByRoom(ctx, char.CurrentRoomId)
+	if err != nil {
+		return fmt.Sprintf("There is no %s here to shop with.", targetName)
+	}
+
+	var targetNPC *db.Character
+	for _, ch := range roomChars {
+		if ch.IsNPC && strings.Contains(strings.ToLower(ch.Name), strings.ToLower(targetName)) {
+			targetNPC = ch
+			break
+		}
+	}
+	if targetNPC == nil {
+		return fmt.Sprintf("There is no %s here to shop with.", targetName)
+	}
+	if targetNPC.NpcTemplateID == "" {
+		return fmt.Sprintf("%s doesn't have anything to sell.", targetNPC.Name)
+	}
+
+	// Look up the shop template for this NPC
+	shop, err := repos.ShopTemplate.GetByNPCTemplateID(ctx, targetNPC.NpcTemplateID)
+	if err != nil {
+		return fmt.Sprintf("%s doesn't have a shop set up.", targetNPC.Name)
+	}
+	if !shop.IsActive {
+		return fmt.Sprintf("%s's shop is currently closed.", targetNPC.Name)
+	}
+
+	// Get shop items
+	shopItems, err := repos.ShopItem.ListByShop(ctx, shop.ID)
+	if err != nil {
+		dblog.Error("tryShop: failed to list shop items", err, slog.Int("shop_id", shop.ID))
+		return fmt.Sprintf("Something went wrong with %s's shop.", targetNPC.Name)
+	}
+
+	// Enrich items with equipment template details
+	type shopItemData struct {
+		ID                  int    `json:"id"`
+		ShopID              int    `json:"shop_id"`
+		EquipmentTemplateID int    `json:"equipment_template_id"`
+		Name                string `json:"name"`
+		Description         string `json:"description"`
+		Category            string `json:"category"`
+		Price               int    `json:"price"`
+		Quantity            int    `json:"quantity"`
+		MaxStock            int    `json:"max_stock"`
+		IsEnabled           bool   `json:"is_enabled"`
+		Slot                string `json:"slot"`
+		Rarity              string `json:"rarity"`
+		DamageDiceCount     int    `json:"damage_dice_count"`
+		DamageDiceSides     int    `json:"damage_dice_sides"`
+		DamageBonus         int    `json:"damage_bonus"`
+		DamageType          string `json:"damage_type"`
+	}
+
+	items := make([]shopItemData, 0, len(shopItems))
+	for _, item := range shopItems {
+		if !item.IsEnabled || item.Quantity <= 0 {
+			continue
+		}
+		eq, err := repos.EquipmentTemplate.Get(ctx, item.EquipmentTemplateID)
+		if err != nil {
+			continue
+		}
+		items = append(items, shopItemData{
+			ID:                  item.ID,
+			ShopID:              item.ShopID,
+			EquipmentTemplateID: item.EquipmentTemplateID,
+			Name:                eq.Name,
+			Description:         eq.Description,
+			Category:            item.Category,
+			Price:               item.Price,
+			Quantity:            item.Quantity,
+			MaxStock:            item.MaxStock,
+			IsEnabled:           item.IsEnabled,
+			Slot:                eq.Slot,
+			Rarity:              eq.Rarity,
+			DamageDiceCount:     eq.DamageDiceCount,
+			DamageDiceSides:     eq.DamageDiceSides,
+			DamageBonus:         eq.DamageBonus,
+			DamageType:          eq.DamageType,
+		})
+	}
+
+	// Send shop screen event to client
+	wsc.send(ServerMessage{
+		Type: "shop",
+		Text: shop.Name,
+		Data: map[string]interface{}{
+			"shop_id":         shop.ID,
+			"name":            shop.Name,
+			"vendor_name":     targetNPC.Name,
+			"npc_template_id": targetNPC.NpcTemplateID,
+			"currency_name":   "gold",
+			"gold":            shop.GoldReserves,
+			"items":           items,
+		},
+		Timestamp: time.Now().UnixMilli(),
+	})
+
+	return fmt.Sprintf("You browse %s's wares.", targetNPC.Name)
 }

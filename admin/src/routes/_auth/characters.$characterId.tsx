@@ -11,6 +11,7 @@ import { ResourceIdField } from "../../components/ResourceIdField";
 import { RESOURCE_ENDPOINTS } from "../../utils/resourceEndpoints";
 import { AddItemModal } from "./-characters.$characterId.addItemModal";
 import { CharacterHistoryPanel } from "../../components/CharacterHistoryPanel";
+import { CharacterBiography } from "../../components/CharacterBiography";
 import { ReclassReraceDialog } from "../../components/ReclassReraceDialog";
 
 function GoldManager({ id, balance }: Readonly<{ id: number; balance: number }>) {
@@ -149,6 +150,12 @@ function CharacterDetail() {
         <CharacterHistoryPanel characterId={character.id} />
       </div>
 
+      {/* Biography */}
+      <div className="mt-6">
+        <h3 className="text-sm font-semibold text-text mb-2 pb-1 border-b border-border">Biography</h3>
+        <CharacterBiography characterId={character.id} />
+      </div>
+
       <AddItemModal open={addItemOpen} onClose={() => { setAddItemOpen(false); setSpawnError(null); }}
         onSpawn={handleSpawnItem} isLoading={spawning} error={spawnError} />
 
@@ -243,6 +250,7 @@ function DetailView({ character }: { character: NonNullable<ReturnType<typeof us
 function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typeof useCharacter>["data"]>, onSave: (update: CharacterUpdate) => void }) {
   const [form, setForm] = useState<CharacterUpdate>({
     name: character.name,
+    currentWorld: character.currentWorld,
     currentRoomId: character.currentRoomId,
     startingRoomId: character.startingRoomId,
     respawnRoomId: character.respawnRoomId,
@@ -321,6 +329,19 @@ function EditForm({ character, onSave }: { character: NonNullable<ReturnType<typ
       </Section>
 
 <Section title="Location">
+        <div className="flex items-center gap-2 mb-2">
+          <label className="text-text-muted text-sm w-28 shrink-0">World</label>
+          <select
+            value={form.currentWorld ?? ""}
+            onChange={(e) => setForm({ ...form, currentWorld: e.target.value })}
+            className="w-48 p-1 bg-surface border border-border rounded text-text text-sm"
+          >
+            <option value="1">1 (herbst-mud)</option>
+            <option value="2">2 (Ooze Surfers)</option>
+            <option value="15">15 (ooze_roundtrip)</option>
+            <option value="16">16 (ooze_final_test)</option>
+          </select>
+        </div>
         <ResourceIdField
           label="Current Room"
           value={form.currentRoomId}

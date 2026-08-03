@@ -26,13 +26,15 @@ func (NPCTemplate) Fields() []ent.Field {
 			Optional().
 			Comment("FK to Race.id — NPC's race"),
 		field.Enum("disposition").
-			Values("hostile", "friendly", "neutral").
+			Values("hostile", "friendly", "neutral", "shopkeeper").
 			Default("neutral"),
 		field.Int("level").
 			Default(1),
 		field.JSON("skills", map[string]int{}),
 		field.Strings("trades_with"),
 		field.Text("greeting"),
+		field.Int("gold_min").Optional().Default(0),
+		field.Int("gold_max").Optional().Default(0),
 	}
 }
 

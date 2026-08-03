@@ -42,6 +42,8 @@ type Tx struct {
 	Room *RoomClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// Zone is the client for interacting with the Zone builders.
+	Zone *ZoneClient
 
 	// lazily loaded.
 	client     *Client
@@ -188,6 +190,7 @@ func (tx *Tx) init() {
 	tx.Race = NewRaceClient(tx.config)
 	tx.Room = NewRoomClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.Zone = NewZoneClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

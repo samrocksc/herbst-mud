@@ -1,9 +1,11 @@
 # CLAUDE.md — Claude Code Project Context for herbst-mud
 
+**important: the skills for this project are in .agents/skills and the docs
+
 ## What This Project Is
 herbst-mud is a Go/PostgreSQL MUD game engine designed to run multiple MUDs
 and storylines. SSH client on port 4444, REST API on port 8080, admin panel
-on port 3000.
+on port 5173.
 
 ## Critical Rules (NEVER SKIP)
 1. **Dual ent generate**: After ANY change to `server/db/schema/` or
@@ -73,6 +75,18 @@ on port 3000.
 - SSH logs: `tail -f /tmp/herbst-ssh.log`
 - Web logs: `tail -f /tmp/herbst-web.log`
 - Health check: `curl -s http://localhost:8080/healthz`
+
+## PM Workflow (GitHub Projects v2)
+- **System of record:** https://github.com/users/samrocksc/projects/2
+- Use the `github-projects` skill to create/track items; pair with
+  `github-issues` for the underlying issue CRUD.
+- `tickets/*.md` files are now **archive bodies**, not the live board.
+  Each active ticket should have a corresponding GitHub issue; the markdown
+  file is the long-form description that gets pasted into the issue body.
+- New work: `gh project item-create 2 --owner samrocksc --title "[<area>] <imperative>" --body @tickets/X.md`
+  then `gh project item-add 2 --owner samrocksc --url <issue-url>`.
+- Status / Priority / Difficulty / Assignee / Area / Type are project fields
+  (not labels). See `github-projects` skill §8 for the herbst-mud field set.
 
 ## Database
 - PostgreSQL 15, ent ORM with auto-migration

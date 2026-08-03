@@ -32,6 +32,7 @@ const DISPOSITION_OPTS = [
   { value: "neutral", label: "Neutral" },
   { value: "friendly", label: "Friendly" },
   { value: "hostile", label: "Hostile" },
+  { value: "shopkeeper", label: "Shopkeeper" },
 ];
 
 function NPCTemplatePage() {

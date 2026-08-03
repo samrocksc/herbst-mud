@@ -180,12 +180,13 @@ type ReclassReraceService interface {
 
 // CombatResult is returned by combat operations.
 type CombatResult struct {
-	ID       int
-	HP       int
-	MaxHP    int
-	Defeated bool
-	Immortal bool
-	Message  string
+	ID          int
+	HP          int
+	MaxHP       int
+	Defeated    bool
+	Immortal    bool
+	Message     string
+	GoldDropped int
 }
 
 // CombatStatusResult is returned by GetCombatStatus.

@@ -67,6 +67,8 @@ func RegisterEventLogSubscriber(client *db.Client, logger *slog.Logger) {
 		EventRerace,
 		EventNPCDefeated,
 		EventCharacterDied,
+		EventCharacterRespawned,
+		EventBossKilled,
 		EventQuestComplete,
 		EventSkillLearned,
 	}

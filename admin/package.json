@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npm run build:routes && vite",
+    "dev": "npm run build:routes && vite --port 5173",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -16,6 +16,7 @@
     "@tanstack/react-query": "^5.90.20",
     "@tanstack/react-router": "^1.157.3",
     "@xyflow/react": "^12.10.1",
+    "immer": "^11.1.11",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

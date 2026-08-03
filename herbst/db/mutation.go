@@ -23,6 +23,7 @@ import (
 	"herbst/db/room"
 	"herbst/db/schema"
 	"herbst/db/user"
+	"herbst/db/zone"
 	"sync"
 	"time"
 
@@ -54,6 +55,7 @@ const (
 	TypeRace              = "Race"
 	TypeRoom              = "Room"
 	TypeUser              = "User"
+	TypeZone              = "Zone"
 )
 
 // AbilityMutation represents an operation that mutates the Ability nodes in the graph.
@@ -8609,7 +8611,7 @@ type EquipmentMutation struct {
 	clearedFields              map[string]struct{}
 	room                       *int
 	clearedroom                bool
-	equipmentTemplate          *int
+	equipmentTemplate          *string
 	clearedequipmentTemplate   bool
 	done                       bool
 	oldValue                   func(context.Context) (*Equipment, error)
@@ -9294,12 +9296,12 @@ func (m *EquipmentMutation) ResetRevealCondition() {
 }
 
 // SetEquipmentTemplateID sets the "equipment_template_id" field.
-func (m *EquipmentMutation) SetEquipmentTemplateID(i int) {
-	m.equipmentTemplate = &i
+func (m *EquipmentMutation) SetEquipmentTemplateID(s string) {
+	m.equipmentTemplate = &s
 }
 
 // EquipmentTemplateID returns the value of the "equipment_template_id" field in the mutation.
-func (m *EquipmentMutation) EquipmentTemplateID() (r int, exists bool) {
+func (m *EquipmentMutation) EquipmentTemplateID() (r string, exists bool) {
 	v := m.equipmentTemplate
 	if v == nil {
 		return
@@ -9310,7 +9312,7 @@ func (m *EquipmentMutation) EquipmentTemplateID() (r int, exists bool) {
 // OldEquipmentTemplateID returns the old "equipment_template_id" field's value of the Equipment entity.
 // If the Equipment object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EquipmentMutation) OldEquipmentTemplateID(ctx context.Context) (v int, err error) {
+func (m *EquipmentMutation) OldEquipmentTemplateID(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldEquipmentTemplateID is only allowed on UpdateOne operations")
 	}
@@ -10111,7 +10113,7 @@ func (m *EquipmentMutation) EquipmentTemplateCleared() bool {
 // EquipmentTemplateIDs returns the "equipmentTemplate" edge IDs in the mutation.
 // Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
 // EquipmentTemplateID instead. It exists only for internal usage by the builders.
-func (m *EquipmentMutation) EquipmentTemplateIDs() (ids []int) {
+func (m *EquipmentMutation) EquipmentTemplateIDs() (ids []string) {
 	if id := m.equipmentTemplate; id != nil {
 		ids = append(ids, *id)
 	}
@@ -10501,7 +10503,7 @@ func (m *EquipmentMutation) SetField(name string, value ent.Value) error {
 		m.SetRevealCondition(v)
 		return nil
 	case equipment.FieldEquipmentTemplateID:
-		v, ok := value.(int)
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -10994,9 +10996,7 @@ type EquipmentTemplateMutation struct {
 	config
 	op                         Op
 	typ                        string
-	id                         *int
-	slug                       *string
-	world_id                   *string
+	id                         *string
 	name                       *string
 	description                *string
 	slot                       *string
@@ -11065,7 +11065,7 @@ func newEquipmentTemplateMutation(c config, op Op, opts ...equipmenttemplateOpti
 }
 
 // withEquipmentTemplateID sets the ID field of the mutation.
-func withEquipmentTemplateID(id int) equipmenttemplateOption {
+func withEquipmentTemplateID(id string) equipmenttemplateOption {
 	return func(m *EquipmentTemplateMutation) {
 		var (
 			err   error
@@ -11115,9 +11115,15 @@ func (m EquipmentTemplateMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of EquipmentTemplate entities.
+func (m *EquipmentTemplateMutation) SetID(id string) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *EquipmentTemplateMutation) ID() (id int, exists bool) {
+func (m *EquipmentTemplateMutation) ID() (id string, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -11128,12 +11134,12 @@ func (m *EquipmentTemplateMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *EquipmentTemplateMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *EquipmentTemplateMutation) IDs(ctx context.Context) ([]string, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []string{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
@@ -11141,78 +11147,6 @@ func (m *EquipmentTemplateMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
-}
-
-// SetSlug sets the "slug" field.
-func (m *EquipmentTemplateMutation) SetSlug(s string) {
-	m.slug = &s
-}
-
-// Slug returns the value of the "slug" field in the mutation.
-func (m *EquipmentTemplateMutation) Slug() (r string, exists bool) {
-	v := m.slug
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSlug returns the old "slug" field's value of the EquipmentTemplate entity.
-// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EquipmentTemplateMutation) OldSlug(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSlug requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
-	}
-	return oldValue.Slug, nil
-}
-
-// ResetSlug resets all changes to the "slug" field.
-func (m *EquipmentTemplateMutation) ResetSlug() {
-	m.slug = nil
-}
-
-// SetWorldID sets the "world_id" field.
-func (m *EquipmentTemplateMutation) SetWorldID(s string) {
-	m.world_id = &s
-}
-
-// WorldID returns the value of the "world_id" field in the mutation.
-func (m *EquipmentTemplateMutation) WorldID() (r string, exists bool) {
-	v := m.world_id
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldWorldID returns the old "world_id" field's value of the EquipmentTemplate entity.
-// If the EquipmentTemplate object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *EquipmentTemplateMutation) OldWorldID(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldWorldID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldWorldID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldWorldID: %w", err)
-	}
-	return oldValue.WorldID, nil
-}
-
-// ResetWorldID resets all changes to the "world_id" field.
-func (m *EquipmentTemplateMutation) ResetWorldID() {
-	m.world_id = nil
 }
 
 // SetName sets the "name" field.
@@ -12573,13 +12507,7 @@ func (m *EquipmentTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *EquipmentTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 31)
-	if m.slug != nil {
-		fields = append(fields, equipmenttemplate.FieldSlug)
-	}
-	if m.world_id != nil {
-		fields = append(fields, equipmenttemplate.FieldWorldID)
-	}
+	fields := make([]string, 0, 29)
 	if m.name != nil {
 		fields = append(fields, equipmenttemplate.FieldName)
 	}
@@ -12675,10 +12603,6 @@ func (m *EquipmentTemplateMutation) Fields() []string {
 // schema.
 func (m *EquipmentTemplateMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case equipmenttemplate.FieldSlug:
-		return m.Slug()
-	case equipmenttemplate.FieldWorldID:
-		return m.WorldID()
 	case equipmenttemplate.FieldName:
 		return m.Name()
 	case equipmenttemplate.FieldDescription:
@@ -12746,10 +12670,6 @@ func (m *EquipmentTemplateMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *EquipmentTemplateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case equipmenttemplate.FieldSlug:
-		return m.OldSlug(ctx)
-	case equipmenttemplate.FieldWorldID:
-		return m.OldWorldID(ctx)
 	case equipmenttemplate.FieldName:
 		return m.OldName(ctx)
 	case equipmenttemplate.FieldDescription:
@@ -12817,20 +12737,6 @@ func (m *EquipmentTemplateMutation) OldField(ctx context.Context, name string) (
 // type.
 func (m *EquipmentTemplateMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case equipmenttemplate.FieldSlug:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSlug(v)
-		return nil
-	case equipmenttemplate.FieldWorldID:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetWorldID(v)
-		return nil
 	case equipmenttemplate.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -13221,12 +13127,6 @@ func (m *EquipmentTemplateMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *EquipmentTemplateMutation) ResetField(name string) error {
 	switch name {
-	case equipmenttemplate.FieldSlug:
-		m.ResetSlug()
-		return nil
-	case equipmenttemplate.FieldWorldID:
-		m.ResetWorldID()
-		return nil
 	case equipmenttemplate.FieldName:
 		m.ResetName()
 		return nil
@@ -13420,6 +13320,10 @@ type NPCTemplateMutation struct {
 	trades_with         *[]string
 	appendtrades_with   []string
 	greeting            *string
+	gold_min            *int
+	addgold_min         *int
+	gold_max            *int
+	addgold_max         *int
 	clearedFields       map[string]struct{}
 	_hooks              map[int]struct{}
 	removed_hooks       map[int]struct{}
@@ -13942,6 +13846,146 @@ func (m *NPCTemplateMutation) ResetGreeting() {
 	m.greeting = nil
 }
 
+// SetGoldMin sets the "gold_min" field.
+func (m *NPCTemplateMutation) SetGoldMin(i int) {
+	m.gold_min = &i
+	m.addgold_min = nil
+}
+
+// GoldMin returns the value of the "gold_min" field in the mutation.
+func (m *NPCTemplateMutation) GoldMin() (r int, exists bool) {
+	v := m.gold_min
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGoldMin returns the old "gold_min" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldGoldMin(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGoldMin is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGoldMin requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGoldMin: %w", err)
+	}
+	return oldValue.GoldMin, nil
+}
+
+// AddGoldMin adds i to the "gold_min" field.
+func (m *NPCTemplateMutation) AddGoldMin(i int) {
+	if m.addgold_min != nil {
+		*m.addgold_min += i
+	} else {
+		m.addgold_min = &i
+	}
+}
+
+// AddedGoldMin returns the value that was added to the "gold_min" field in this mutation.
+func (m *NPCTemplateMutation) AddedGoldMin() (r int, exists bool) {
+	v := m.addgold_min
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearGoldMin clears the value of the "gold_min" field.
+func (m *NPCTemplateMutation) ClearGoldMin() {
+	m.gold_min = nil
+	m.addgold_min = nil
+	m.clearedFields[npctemplate.FieldGoldMin] = struct{}{}
+}
+
+// GoldMinCleared returns if the "gold_min" field was cleared in this mutation.
+func (m *NPCTemplateMutation) GoldMinCleared() bool {
+	_, ok := m.clearedFields[npctemplate.FieldGoldMin]
+	return ok
+}
+
+// ResetGoldMin resets all changes to the "gold_min" field.
+func (m *NPCTemplateMutation) ResetGoldMin() {
+	m.gold_min = nil
+	m.addgold_min = nil
+	delete(m.clearedFields, npctemplate.FieldGoldMin)
+}
+
+// SetGoldMax sets the "gold_max" field.
+func (m *NPCTemplateMutation) SetGoldMax(i int) {
+	m.gold_max = &i
+	m.addgold_max = nil
+}
+
+// GoldMax returns the value of the "gold_max" field in the mutation.
+func (m *NPCTemplateMutation) GoldMax() (r int, exists bool) {
+	v := m.gold_max
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGoldMax returns the old "gold_max" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldGoldMax(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGoldMax is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGoldMax requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGoldMax: %w", err)
+	}
+	return oldValue.GoldMax, nil
+}
+
+// AddGoldMax adds i to the "gold_max" field.
+func (m *NPCTemplateMutation) AddGoldMax(i int) {
+	if m.addgold_max != nil {
+		*m.addgold_max += i
+	} else {
+		m.addgold_max = &i
+	}
+}
+
+// AddedGoldMax returns the value that was added to the "gold_max" field in this mutation.
+func (m *NPCTemplateMutation) AddedGoldMax() (r int, exists bool) {
+	v := m.addgold_max
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearGoldMax clears the value of the "gold_max" field.
+func (m *NPCTemplateMutation) ClearGoldMax() {
+	m.gold_max = nil
+	m.addgold_max = nil
+	m.clearedFields[npctemplate.FieldGoldMax] = struct{}{}
+}
+
+// GoldMaxCleared returns if the "gold_max" field was cleared in this mutation.
+func (m *NPCTemplateMutation) GoldMaxCleared() bool {
+	_, ok := m.clearedFields[npctemplate.FieldGoldMax]
+	return ok
+}
+
+// ResetGoldMax resets all changes to the "gold_max" field.
+func (m *NPCTemplateMutation) ResetGoldMax() {
+	m.gold_max = nil
+	m.addgold_max = nil
+	delete(m.clearedFields, npctemplate.FieldGoldMax)
+}
+
 // AddHookIDs adds the "hooks" edge to the EffectHook entity by ids.
 func (m *NPCTemplateMutation) AddHookIDs(ids ...int) {
 	if m._hooks == nil {
@@ -14084,7 +14128,7 @@ func (m *NPCTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NPCTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 11)
 	if m.slug != nil {
 		fields = append(fields, npctemplate.FieldSlug)
 	}
@@ -14112,6 +14156,12 @@ func (m *NPCTemplateMutation) Fields() []string {
 	if m.greeting != nil {
 		fields = append(fields, npctemplate.FieldGreeting)
 	}
+	if m.gold_min != nil {
+		fields = append(fields, npctemplate.FieldGoldMin)
+	}
+	if m.gold_max != nil {
+		fields = append(fields, npctemplate.FieldGoldMax)
+	}
 	return fields
 }
 
@@ -14138,6 +14188,10 @@ func (m *NPCTemplateMutation) Field(name string) (ent.Value, bool) {
 		return m.TradesWith()
 	case npctemplate.FieldGreeting:
 		return m.Greeting()
+	case npctemplate.FieldGoldMin:
+		return m.GoldMin()
+	case npctemplate.FieldGoldMax:
+		return m.GoldMax()
 	}
 	return nil, false
 }
@@ -14165,6 +14219,10 @@ func (m *NPCTemplateMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldTradesWith(ctx)
 	case npctemplate.FieldGreeting:
 		return m.OldGreeting(ctx)
+	case npctemplate.FieldGoldMin:
+		return m.OldGoldMin(ctx)
+	case npctemplate.FieldGoldMax:
+		return m.OldGoldMax(ctx)
 	}
 	return nil, fmt.Errorf("unknown NPCTemplate field %s", name)
 }
@@ -14237,6 +14295,20 @@ func (m *NPCTemplateMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetGreeting(v)
 		return nil
+	case npctemplate.FieldGoldMin:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGoldMin(v)
+		return nil
+	case npctemplate.FieldGoldMax:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGoldMax(v)
+		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate field %s", name)
 }
@@ -14251,6 +14323,12 @@ func (m *NPCTemplateMutation) AddedFields() []string {
 	if m.addlevel != nil {
 		fields = append(fields, npctemplate.FieldLevel)
 	}
+	if m.addgold_min != nil {
+		fields = append(fields, npctemplate.FieldGoldMin)
+	}
+	if m.addgold_max != nil {
+		fields = append(fields, npctemplate.FieldGoldMax)
+	}
 	return fields
 }
 
@@ -14263,6 +14341,10 @@ func (m *NPCTemplateMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedRaceID()
 	case npctemplate.FieldLevel:
 		return m.AddedLevel()
+	case npctemplate.FieldGoldMin:
+		return m.AddedGoldMin()
+	case npctemplate.FieldGoldMax:
+		return m.AddedGoldMax()
 	}
 	return nil, false
 }
@@ -14286,6 +14368,20 @@ func (m *NPCTemplateMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddLevel(v)
 		return nil
+	case npctemplate.FieldGoldMin:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGoldMin(v)
+		return nil
+	case npctemplate.FieldGoldMax:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGoldMax(v)
+		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate numeric field %s", name)
 }
@@ -14299,6 +14395,12 @@ func (m *NPCTemplateMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(npctemplate.FieldRaceID) {
 		fields = append(fields, npctemplate.FieldRaceID)
+	}
+	if m.FieldCleared(npctemplate.FieldGoldMin) {
+		fields = append(fields, npctemplate.FieldGoldMin)
+	}
+	if m.FieldCleared(npctemplate.FieldGoldMax) {
+		fields = append(fields, npctemplate.FieldGoldMax)
 	}
 	return fields
 }
@@ -14319,6 +14421,12 @@ func (m *NPCTemplateMutation) ClearField(name string) error {
 		return nil
 	case npctemplate.FieldRaceID:
 		m.ClearRaceID()
+		return nil
+	case npctemplate.FieldGoldMin:
+		m.ClearGoldMin()
+		return nil
+	case npctemplate.FieldGoldMax:
+		m.ClearGoldMax()
 		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate nullable field %s", name)
@@ -14354,6 +14462,12 @@ func (m *NPCTemplateMutation) ResetField(name string) error {
 		return nil
 	case npctemplate.FieldGreeting:
 		m.ResetGreeting()
+		return nil
+	case npctemplate.FieldGoldMin:
+		m.ResetGoldMin()
+		return nil
+	case npctemplate.FieldGoldMax:
+		m.ResetGoldMax()
 		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate field %s", name)
@@ -17001,6 +17115,8 @@ type RoomMutation struct {
 	atmosphere        *room.Atmosphere
 	tags              *[]string
 	appendtags        []string
+	zone_ids          *[]string
+	appendzone_ids    []string
 	clearedFields     map[string]struct{}
 	characters        map[int]struct{}
 	removedcharacters map[int]struct{}
@@ -17008,6 +17124,9 @@ type RoomMutation struct {
 	equipment         map[int]struct{}
 	removedequipment  map[int]struct{}
 	clearedequipment  bool
+	zones             map[string]struct{}
+	removedzones      map[string]struct{}
+	clearedzones      bool
 	done              bool
 	oldValue          func(context.Context) (*Room, error)
 	predicates        []predicate.Room
@@ -17392,6 +17511,71 @@ func (m *RoomMutation) ResetTags() {
 	delete(m.clearedFields, room.FieldTags)
 }
 
+// SetZoneIds sets the "zone_ids" field.
+func (m *RoomMutation) SetZoneIds(s []string) {
+	m.zone_ids = &s
+	m.appendzone_ids = nil
+}
+
+// ZoneIds returns the value of the "zone_ids" field in the mutation.
+func (m *RoomMutation) ZoneIds() (r []string, exists bool) {
+	v := m.zone_ids
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldZoneIds returns the old "zone_ids" field's value of the Room entity.
+// If the Room object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RoomMutation) OldZoneIds(ctx context.Context) (v []string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldZoneIds is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldZoneIds requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldZoneIds: %w", err)
+	}
+	return oldValue.ZoneIds, nil
+}
+
+// AppendZoneIds adds s to the "zone_ids" field.
+func (m *RoomMutation) AppendZoneIds(s []string) {
+	m.appendzone_ids = append(m.appendzone_ids, s...)
+}
+
+// AppendedZoneIds returns the list of values that were appended to the "zone_ids" field in this mutation.
+func (m *RoomMutation) AppendedZoneIds() ([]string, bool) {
+	if len(m.appendzone_ids) == 0 {
+		return nil, false
+	}
+	return m.appendzone_ids, true
+}
+
+// ClearZoneIds clears the value of the "zone_ids" field.
+func (m *RoomMutation) ClearZoneIds() {
+	m.zone_ids = nil
+	m.appendzone_ids = nil
+	m.clearedFields[room.FieldZoneIds] = struct{}{}
+}
+
+// ZoneIdsCleared returns if the "zone_ids" field was cleared in this mutation.
+func (m *RoomMutation) ZoneIdsCleared() bool {
+	_, ok := m.clearedFields[room.FieldZoneIds]
+	return ok
+}
+
+// ResetZoneIds resets all changes to the "zone_ids" field.
+func (m *RoomMutation) ResetZoneIds() {
+	m.zone_ids = nil
+	m.appendzone_ids = nil
+	delete(m.clearedFields, room.FieldZoneIds)
+}
+
 // AddCharacterIDs adds the "characters" edge to the Character entity by ids.
 func (m *RoomMutation) AddCharacterIDs(ids ...int) {
 	if m.characters == nil {
@@ -17500,6 +17684,60 @@ func (m *RoomMutation) ResetEquipment() {
 	m.removedequipment = nil
 }
 
+// AddZoneIDs adds the "zones" edge to the Zone entity by ids.
+func (m *RoomMutation) AddZoneIDs(ids ...string) {
+	if m.zones == nil {
+		m.zones = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.zones[ids[i]] = struct{}{}
+	}
+}
+
+// ClearZones clears the "zones" edge to the Zone entity.
+func (m *RoomMutation) ClearZones() {
+	m.clearedzones = true
+}
+
+// ZonesCleared reports if the "zones" edge to the Zone entity was cleared.
+func (m *RoomMutation) ZonesCleared() bool {
+	return m.clearedzones
+}
+
+// RemoveZoneIDs removes the "zones" edge to the Zone entity by IDs.
+func (m *RoomMutation) RemoveZoneIDs(ids ...string) {
+	if m.removedzones == nil {
+		m.removedzones = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.zones, ids[i])
+		m.removedzones[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedZones returns the removed IDs of the "zones" edge to the Zone entity.
+func (m *RoomMutation) RemovedZonesIDs() (ids []string) {
+	for id := range m.removedzones {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ZonesIDs returns the "zones" edge IDs in the mutation.
+func (m *RoomMutation) ZonesIDs() (ids []string) {
+	for id := range m.zones {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetZones resets all changes to the "zones" edge.
+func (m *RoomMutation) ResetZones() {
+	m.zones = nil
+	m.clearedzones = false
+	m.removedzones = nil
+}
+
 // Where appends a list predicates to the RoomMutation builder.
 func (m *RoomMutation) Where(ps ...predicate.Room) {
 	m.predicates = append(m.predicates, ps...)
@@ -17534,7 +17772,7 @@ func (m *RoomMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RoomMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 8)
 	if m.name != nil {
 		fields = append(fields, room.FieldName)
 	}
@@ -17555,6 +17793,9 @@ func (m *RoomMutation) Fields() []string {
 	}
 	if m.tags != nil {
 		fields = append(fields, room.FieldTags)
+	}
+	if m.zone_ids != nil {
+		fields = append(fields, room.FieldZoneIds)
 	}
 	return fields
 }
@@ -17578,6 +17819,8 @@ func (m *RoomMutation) Field(name string) (ent.Value, bool) {
 		return m.Atmosphere()
 	case room.FieldTags:
 		return m.Tags()
+	case room.FieldZoneIds:
+		return m.ZoneIds()
 	}
 	return nil, false
 }
@@ -17601,6 +17844,8 @@ func (m *RoomMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldAtmosphere(ctx)
 	case room.FieldTags:
 		return m.OldTags(ctx)
+	case room.FieldZoneIds:
+		return m.OldZoneIds(ctx)
 	}
 	return nil, fmt.Errorf("unknown Room field %s", name)
 }
@@ -17659,6 +17904,13 @@ func (m *RoomMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetTags(v)
 		return nil
+	case room.FieldZoneIds:
+		v, ok := value.([]string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetZoneIds(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Room field %s", name)
 }
@@ -17692,6 +17944,9 @@ func (m *RoomMutation) ClearedFields() []string {
 	if m.FieldCleared(room.FieldTags) {
 		fields = append(fields, room.FieldTags)
 	}
+	if m.FieldCleared(room.FieldZoneIds) {
+		fields = append(fields, room.FieldZoneIds)
+	}
 	return fields
 }
 
@@ -17708,6 +17963,9 @@ func (m *RoomMutation) ClearField(name string) error {
 	switch name {
 	case room.FieldTags:
 		m.ClearTags()
+		return nil
+	case room.FieldZoneIds:
+		m.ClearZoneIds()
 		return nil
 	}
 	return fmt.Errorf("unknown Room nullable field %s", name)
@@ -17738,18 +17996,24 @@ func (m *RoomMutation) ResetField(name string) error {
 	case room.FieldTags:
 		m.ResetTags()
 		return nil
+	case room.FieldZoneIds:
+		m.ResetZoneIds()
+		return nil
 	}
 	return fmt.Errorf("unknown Room field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *RoomMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.characters != nil {
 		edges = append(edges, room.EdgeCharacters)
 	}
 	if m.equipment != nil {
 		edges = append(edges, room.EdgeEquipment)
+	}
+	if m.zones != nil {
+		edges = append(edges, room.EdgeZones)
 	}
 	return edges
 }
@@ -17770,18 +18034,27 @@ func (m *RoomMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case room.EdgeZones:
+		ids := make([]ent.Value, 0, len(m.zones))
+		for id := range m.zones {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *RoomMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedcharacters != nil {
 		edges = append(edges, room.EdgeCharacters)
 	}
 	if m.removedequipment != nil {
 		edges = append(edges, room.EdgeEquipment)
+	}
+	if m.removedzones != nil {
+		edges = append(edges, room.EdgeZones)
 	}
 	return edges
 }
@@ -17802,18 +18075,27 @@ func (m *RoomMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case room.EdgeZones:
+		ids := make([]ent.Value, 0, len(m.removedzones))
+		for id := range m.removedzones {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *RoomMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedcharacters {
 		edges = append(edges, room.EdgeCharacters)
 	}
 	if m.clearedequipment {
 		edges = append(edges, room.EdgeEquipment)
+	}
+	if m.clearedzones {
+		edges = append(edges, room.EdgeZones)
 	}
 	return edges
 }
@@ -17826,6 +18108,8 @@ func (m *RoomMutation) EdgeCleared(name string) bool {
 		return m.clearedcharacters
 	case room.EdgeEquipment:
 		return m.clearedequipment
+	case room.EdgeZones:
+		return m.clearedzones
 	}
 	return false
 }
@@ -17847,6 +18131,9 @@ func (m *RoomMutation) ResetEdge(name string) error {
 		return nil
 	case room.EdgeEquipment:
 		m.ResetEquipment()
+		return nil
+	case room.EdgeZones:
+		m.ResetZones()
 		return nil
 	}
 	return fmt.Errorf("unknown Room edge %s", name)
@@ -18377,4 +18664,937 @@ func (m *UserMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
+}
+
+// ZoneMutation represents an operation that mutates the Zone nodes in the graph.
+type ZoneMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *string
+	world_id        *string
+	name            *string
+	description     *string
+	min_level       *int
+	addmin_level    *int
+	color           *string
+	clearedFields   map[string]struct{}
+	parent          *string
+	clearedparent   bool
+	children        map[string]struct{}
+	removedchildren map[string]struct{}
+	clearedchildren bool
+	rooms           map[int]struct{}
+	removedrooms    map[int]struct{}
+	clearedrooms    bool
+	done            bool
+	oldValue        func(context.Context) (*Zone, error)
+	predicates      []predicate.Zone
+}
+
+var _ ent.Mutation = (*ZoneMutation)(nil)
+
+// zoneOption allows management of the mutation configuration using functional options.
+type zoneOption func(*ZoneMutation)
+
+// newZoneMutation creates new mutation for the Zone entity.
+func newZoneMutation(c config, op Op, opts ...zoneOption) *ZoneMutation {
+	m := &ZoneMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeZone,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withZoneID sets the ID field of the mutation.
+func withZoneID(id string) zoneOption {
+	return func(m *ZoneMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Zone
+		)
+		m.oldValue = func(ctx context.Context) (*Zone, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Zone.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withZone sets the old Zone of the mutation.
+func withZone(node *Zone) zoneOption {
+	return func(m *ZoneMutation) {
+		m.oldValue = func(context.Context) (*Zone, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ZoneMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ZoneMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("db: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Zone entities.
+func (m *ZoneMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ZoneMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ZoneMutation) IDs(ctx context.Context) ([]string, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []string{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Zone.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetWorldID sets the "world_id" field.
+func (m *ZoneMutation) SetWorldID(s string) {
+	m.world_id = &s
+}
+
+// WorldID returns the value of the "world_id" field in the mutation.
+func (m *ZoneMutation) WorldID() (r string, exists bool) {
+	v := m.world_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWorldID returns the old "world_id" field's value of the Zone entity.
+// If the Zone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ZoneMutation) OldWorldID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWorldID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWorldID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWorldID: %w", err)
+	}
+	return oldValue.WorldID, nil
+}
+
+// ResetWorldID resets all changes to the "world_id" field.
+func (m *ZoneMutation) ResetWorldID() {
+	m.world_id = nil
+}
+
+// SetName sets the "name" field.
+func (m *ZoneMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *ZoneMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Zone entity.
+// If the Zone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ZoneMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *ZoneMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *ZoneMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *ZoneMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Zone entity.
+// If the Zone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ZoneMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *ZoneMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[zone.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *ZoneMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[zone.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *ZoneMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, zone.FieldDescription)
+}
+
+// SetMinLevel sets the "min_level" field.
+func (m *ZoneMutation) SetMinLevel(i int) {
+	m.min_level = &i
+	m.addmin_level = nil
+}
+
+// MinLevel returns the value of the "min_level" field in the mutation.
+func (m *ZoneMutation) MinLevel() (r int, exists bool) {
+	v := m.min_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldMinLevel returns the old "min_level" field's value of the Zone entity.
+// If the Zone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ZoneMutation) OldMinLevel(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldMinLevel is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldMinLevel requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldMinLevel: %w", err)
+	}
+	return oldValue.MinLevel, nil
+}
+
+// AddMinLevel adds i to the "min_level" field.
+func (m *ZoneMutation) AddMinLevel(i int) {
+	if m.addmin_level != nil {
+		*m.addmin_level += i
+	} else {
+		m.addmin_level = &i
+	}
+}
+
+// AddedMinLevel returns the value that was added to the "min_level" field in this mutation.
+func (m *ZoneMutation) AddedMinLevel() (r int, exists bool) {
+	v := m.addmin_level
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetMinLevel resets all changes to the "min_level" field.
+func (m *ZoneMutation) ResetMinLevel() {
+	m.min_level = nil
+	m.addmin_level = nil
+}
+
+// SetParentZoneID sets the "parent_zone_id" field.
+func (m *ZoneMutation) SetParentZoneID(s string) {
+	m.parent = &s
+}
+
+// ParentZoneID returns the value of the "parent_zone_id" field in the mutation.
+func (m *ZoneMutation) ParentZoneID() (r string, exists bool) {
+	v := m.parent
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParentZoneID returns the old "parent_zone_id" field's value of the Zone entity.
+// If the Zone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ZoneMutation) OldParentZoneID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParentZoneID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParentZoneID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParentZoneID: %w", err)
+	}
+	return oldValue.ParentZoneID, nil
+}
+
+// ClearParentZoneID clears the value of the "parent_zone_id" field.
+func (m *ZoneMutation) ClearParentZoneID() {
+	m.parent = nil
+	m.clearedFields[zone.FieldParentZoneID] = struct{}{}
+}
+
+// ParentZoneIDCleared returns if the "parent_zone_id" field was cleared in this mutation.
+func (m *ZoneMutation) ParentZoneIDCleared() bool {
+	_, ok := m.clearedFields[zone.FieldParentZoneID]
+	return ok
+}
+
+// ResetParentZoneID resets all changes to the "parent_zone_id" field.
+func (m *ZoneMutation) ResetParentZoneID() {
+	m.parent = nil
+	delete(m.clearedFields, zone.FieldParentZoneID)
+}
+
+// SetColor sets the "color" field.
+func (m *ZoneMutation) SetColor(s string) {
+	m.color = &s
+}
+
+// Color returns the value of the "color" field in the mutation.
+func (m *ZoneMutation) Color() (r string, exists bool) {
+	v := m.color
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldColor returns the old "color" field's value of the Zone entity.
+// If the Zone object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ZoneMutation) OldColor(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldColor is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldColor requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldColor: %w", err)
+	}
+	return oldValue.Color, nil
+}
+
+// ClearColor clears the value of the "color" field.
+func (m *ZoneMutation) ClearColor() {
+	m.color = nil
+	m.clearedFields[zone.FieldColor] = struct{}{}
+}
+
+// ColorCleared returns if the "color" field was cleared in this mutation.
+func (m *ZoneMutation) ColorCleared() bool {
+	_, ok := m.clearedFields[zone.FieldColor]
+	return ok
+}
+
+// ResetColor resets all changes to the "color" field.
+func (m *ZoneMutation) ResetColor() {
+	m.color = nil
+	delete(m.clearedFields, zone.FieldColor)
+}
+
+// SetParentID sets the "parent" edge to the Zone entity by id.
+func (m *ZoneMutation) SetParentID(id string) {
+	m.parent = &id
+}
+
+// ClearParent clears the "parent" edge to the Zone entity.
+func (m *ZoneMutation) ClearParent() {
+	m.clearedparent = true
+	m.clearedFields[zone.FieldParentZoneID] = struct{}{}
+}
+
+// ParentCleared reports if the "parent" edge to the Zone entity was cleared.
+func (m *ZoneMutation) ParentCleared() bool {
+	return m.ParentZoneIDCleared() || m.clearedparent
+}
+
+// ParentID returns the "parent" edge ID in the mutation.
+func (m *ZoneMutation) ParentID() (id string, exists bool) {
+	if m.parent != nil {
+		return *m.parent, true
+	}
+	return
+}
+
+// ParentIDs returns the "parent" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ParentID instead. It exists only for internal usage by the builders.
+func (m *ZoneMutation) ParentIDs() (ids []string) {
+	if id := m.parent; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetParent resets all changes to the "parent" edge.
+func (m *ZoneMutation) ResetParent() {
+	m.parent = nil
+	m.clearedparent = false
+}
+
+// AddChildIDs adds the "children" edge to the Zone entity by ids.
+func (m *ZoneMutation) AddChildIDs(ids ...string) {
+	if m.children == nil {
+		m.children = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.children[ids[i]] = struct{}{}
+	}
+}
+
+// ClearChildren clears the "children" edge to the Zone entity.
+func (m *ZoneMutation) ClearChildren() {
+	m.clearedchildren = true
+}
+
+// ChildrenCleared reports if the "children" edge to the Zone entity was cleared.
+func (m *ZoneMutation) ChildrenCleared() bool {
+	return m.clearedchildren
+}
+
+// RemoveChildIDs removes the "children" edge to the Zone entity by IDs.
+func (m *ZoneMutation) RemoveChildIDs(ids ...string) {
+	if m.removedchildren == nil {
+		m.removedchildren = make(map[string]struct{})
+	}
+	for i := range ids {
+		delete(m.children, ids[i])
+		m.removedchildren[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedChildren returns the removed IDs of the "children" edge to the Zone entity.
+func (m *ZoneMutation) RemovedChildrenIDs() (ids []string) {
+	for id := range m.removedchildren {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ChildrenIDs returns the "children" edge IDs in the mutation.
+func (m *ZoneMutation) ChildrenIDs() (ids []string) {
+	for id := range m.children {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetChildren resets all changes to the "children" edge.
+func (m *ZoneMutation) ResetChildren() {
+	m.children = nil
+	m.clearedchildren = false
+	m.removedchildren = nil
+}
+
+// AddRoomIDs adds the "rooms" edge to the Room entity by ids.
+func (m *ZoneMutation) AddRoomIDs(ids ...int) {
+	if m.rooms == nil {
+		m.rooms = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.rooms[ids[i]] = struct{}{}
+	}
+}
+
+// ClearRooms clears the "rooms" edge to the Room entity.
+func (m *ZoneMutation) ClearRooms() {
+	m.clearedrooms = true
+}
+
+// RoomsCleared reports if the "rooms" edge to the Room entity was cleared.
+func (m *ZoneMutation) RoomsCleared() bool {
+	return m.clearedrooms
+}
+
+// RemoveRoomIDs removes the "rooms" edge to the Room entity by IDs.
+func (m *ZoneMutation) RemoveRoomIDs(ids ...int) {
+	if m.removedrooms == nil {
+		m.removedrooms = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.rooms, ids[i])
+		m.removedrooms[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedRooms returns the removed IDs of the "rooms" edge to the Room entity.
+func (m *ZoneMutation) RemovedRoomsIDs() (ids []int) {
+	for id := range m.removedrooms {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// RoomsIDs returns the "rooms" edge IDs in the mutation.
+func (m *ZoneMutation) RoomsIDs() (ids []int) {
+	for id := range m.rooms {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetRooms resets all changes to the "rooms" edge.
+func (m *ZoneMutation) ResetRooms() {
+	m.rooms = nil
+	m.clearedrooms = false
+	m.removedrooms = nil
+}
+
+// Where appends a list predicates to the ZoneMutation builder.
+func (m *ZoneMutation) Where(ps ...predicate.Zone) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ZoneMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ZoneMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Zone, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ZoneMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ZoneMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Zone).
+func (m *ZoneMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ZoneMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.world_id != nil {
+		fields = append(fields, zone.FieldWorldID)
+	}
+	if m.name != nil {
+		fields = append(fields, zone.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, zone.FieldDescription)
+	}
+	if m.min_level != nil {
+		fields = append(fields, zone.FieldMinLevel)
+	}
+	if m.parent != nil {
+		fields = append(fields, zone.FieldParentZoneID)
+	}
+	if m.color != nil {
+		fields = append(fields, zone.FieldColor)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ZoneMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case zone.FieldWorldID:
+		return m.WorldID()
+	case zone.FieldName:
+		return m.Name()
+	case zone.FieldDescription:
+		return m.Description()
+	case zone.FieldMinLevel:
+		return m.MinLevel()
+	case zone.FieldParentZoneID:
+		return m.ParentZoneID()
+	case zone.FieldColor:
+		return m.Color()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ZoneMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case zone.FieldWorldID:
+		return m.OldWorldID(ctx)
+	case zone.FieldName:
+		return m.OldName(ctx)
+	case zone.FieldDescription:
+		return m.OldDescription(ctx)
+	case zone.FieldMinLevel:
+		return m.OldMinLevel(ctx)
+	case zone.FieldParentZoneID:
+		return m.OldParentZoneID(ctx)
+	case zone.FieldColor:
+		return m.OldColor(ctx)
+	}
+	return nil, fmt.Errorf("unknown Zone field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ZoneMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case zone.FieldWorldID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWorldID(v)
+		return nil
+	case zone.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case zone.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case zone.FieldMinLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetMinLevel(v)
+		return nil
+	case zone.FieldParentZoneID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParentZoneID(v)
+		return nil
+	case zone.FieldColor:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetColor(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Zone field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ZoneMutation) AddedFields() []string {
+	var fields []string
+	if m.addmin_level != nil {
+		fields = append(fields, zone.FieldMinLevel)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ZoneMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case zone.FieldMinLevel:
+		return m.AddedMinLevel()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ZoneMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case zone.FieldMinLevel:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddMinLevel(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Zone numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ZoneMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(zone.FieldDescription) {
+		fields = append(fields, zone.FieldDescription)
+	}
+	if m.FieldCleared(zone.FieldParentZoneID) {
+		fields = append(fields, zone.FieldParentZoneID)
+	}
+	if m.FieldCleared(zone.FieldColor) {
+		fields = append(fields, zone.FieldColor)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ZoneMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ZoneMutation) ClearField(name string) error {
+	switch name {
+	case zone.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case zone.FieldParentZoneID:
+		m.ClearParentZoneID()
+		return nil
+	case zone.FieldColor:
+		m.ClearColor()
+		return nil
+	}
+	return fmt.Errorf("unknown Zone nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ZoneMutation) ResetField(name string) error {
+	switch name {
+	case zone.FieldWorldID:
+		m.ResetWorldID()
+		return nil
+	case zone.FieldName:
+		m.ResetName()
+		return nil
+	case zone.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case zone.FieldMinLevel:
+		m.ResetMinLevel()
+		return nil
+	case zone.FieldParentZoneID:
+		m.ResetParentZoneID()
+		return nil
+	case zone.FieldColor:
+		m.ResetColor()
+		return nil
+	}
+	return fmt.Errorf("unknown Zone field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ZoneMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.parent != nil {
+		edges = append(edges, zone.EdgeParent)
+	}
+	if m.children != nil {
+		edges = append(edges, zone.EdgeChildren)
+	}
+	if m.rooms != nil {
+		edges = append(edges, zone.EdgeRooms)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ZoneMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case zone.EdgeParent:
+		if id := m.parent; id != nil {
+			return []ent.Value{*id}
+		}
+	case zone.EdgeChildren:
+		ids := make([]ent.Value, 0, len(m.children))
+		for id := range m.children {
+			ids = append(ids, id)
+		}
+		return ids
+	case zone.EdgeRooms:
+		ids := make([]ent.Value, 0, len(m.rooms))
+		for id := range m.rooms {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ZoneMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.removedchildren != nil {
+		edges = append(edges, zone.EdgeChildren)
+	}
+	if m.removedrooms != nil {
+		edges = append(edges, zone.EdgeRooms)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ZoneMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case zone.EdgeChildren:
+		ids := make([]ent.Value, 0, len(m.removedchildren))
+		for id := range m.removedchildren {
+			ids = append(ids, id)
+		}
+		return ids
+	case zone.EdgeRooms:
+		ids := make([]ent.Value, 0, len(m.removedrooms))
+		for id := range m.removedrooms {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ZoneMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedparent {
+		edges = append(edges, zone.EdgeParent)
+	}
+	if m.clearedchildren {
+		edges = append(edges, zone.EdgeChildren)
+	}
+	if m.clearedrooms {
+		edges = append(edges, zone.EdgeRooms)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ZoneMutation) EdgeCleared(name string) bool {
+	switch name {
+	case zone.EdgeParent:
+		return m.clearedparent
+	case zone.EdgeChildren:
+		return m.clearedchildren
+	case zone.EdgeRooms:
+		return m.clearedrooms
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ZoneMutation) ClearEdge(name string) error {
+	switch name {
+	case zone.EdgeParent:
+		m.ClearParent()
+		return nil
+	}
+	return fmt.Errorf("unknown Zone unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ZoneMutation) ResetEdge(name string) error {
+	switch name {
+	case zone.EdgeParent:
+		m.ResetParent()
+		return nil
+	case zone.EdgeChildren:
+		m.ResetChildren()
+		return nil
+	case zone.EdgeRooms:
+		m.ResetRooms()
+		return nil
+	}
+	return fmt.Errorf("unknown Zone edge %s", name)
 }

@@ -32,6 +32,10 @@ const (
 	FieldTradesWith = "trades_with"
 	// FieldGreeting holds the string denoting the greeting field in the database.
 	FieldGreeting = "greeting"
+	// FieldGoldMin holds the string denoting the gold_min field in the database.
+	FieldGoldMin = "gold_min"
+	// FieldGoldMax holds the string denoting the gold_max field in the database.
+	FieldGoldMax = "gold_max"
 	// EdgeHooks holds the string denoting the hooks edge name in mutations.
 	EdgeHooks = "hooks"
 	// EdgeDialogNodes holds the string denoting the dialog_nodes edge name in mutations.
@@ -66,6 +70,8 @@ var Columns = []string{
 	FieldSkills,
 	FieldTradesWith,
 	FieldGreeting,
+	FieldGoldMin,
+	FieldGoldMax,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -81,6 +87,10 @@ func ValidColumn(column string) bool {
 var (
 	// DefaultLevel holds the default value on creation for the "level" field.
 	DefaultLevel int
+	// DefaultGoldMin holds the default value on creation for the "gold_min" field.
+	DefaultGoldMin int
+	// DefaultGoldMax holds the default value on creation for the "gold_max" field.
+	DefaultGoldMax int
 )
 
 // Disposition defines the type for the "disposition" enum field.
@@ -91,9 +101,10 @@ const DefaultDisposition = DispositionNeutral
 
 // Disposition values.
 const (
-	DispositionHostile  Disposition = "hostile"
-	DispositionFriendly Disposition = "friendly"
-	DispositionNeutral  Disposition = "neutral"
+	DispositionHostile    Disposition = "hostile"
+	DispositionFriendly   Disposition = "friendly"
+	DispositionNeutral    Disposition = "neutral"
+	DispositionShopkeeper Disposition = "shopkeeper"
 )
 
 func (d Disposition) String() string {
@@ -103,7 +114,7 @@ func (d Disposition) String() string {
 // DispositionValidator is a validator for the "disposition" field enum values. It is called by the builders before save.
 func DispositionValidator(d Disposition) error {
 	switch d {
-	case DispositionHostile, DispositionFriendly, DispositionNeutral:
+	case DispositionHostile, DispositionFriendly, DispositionNeutral, DispositionShopkeeper:
 		return nil
 	default:
 		return fmt.Errorf("npctemplate: invalid enum value for disposition field: %q", d)
@@ -151,6 +162,16 @@ func ByLevel(opts ...sql.OrderTermOption) OrderOption {
 // ByGreeting orders the results by the greeting field.
 func ByGreeting(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldGreeting, opts...).ToFunc()
+}
+
+// ByGoldMin orders the results by the gold_min field.
+func ByGoldMin(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGoldMin, opts...).ToFunc()
+}
+
+// ByGoldMax orders the results by the gold_max field.
+func ByGoldMax(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGoldMax, opts...).ToFunc()
 }
 
 // ByHooksCount orders the results by hooks count.

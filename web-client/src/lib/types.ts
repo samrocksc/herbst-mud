@@ -15,6 +15,7 @@ export type RoomCharacter = {
   readonly type: "npc" | "player";
   readonly id: number;
   readonly hostile: boolean;
+  readonly npc_template_id?: string;
 };
 
 export type RoomItem = {
@@ -32,9 +33,17 @@ export type RoomScreenPayload = {
   readonly title: string;
   readonly description: string;
   readonly ascii_art_id?: string;
-  readonly exits: readonly RoomExit[];
-  readonly characters: readonly RoomCharacter[];
-  readonly items: readonly RoomItem[];
+  readonly exits: readonly RoomExit[] | null;
+  readonly characters: readonly RoomCharacter[] | null;
+  readonly items: readonly RoomItem[] | null;
+};
+
+export type ConversationScreenPayload = {
+  readonly view_type: "conversation";
+  readonly npc_name: string;
+  readonly npc_template_id: string;
+  readonly nodes: Record<string, DialogNode>;
+  readonly current_node_id: string;
 };
 
 export type Ability = {
@@ -46,6 +55,8 @@ export type Ability = {
   readonly mana_cost: number;
   readonly stamina_cost: number;
   readonly hp_cost: number;
+  readonly caster_message?: string;
+  readonly recipient_message?: string;
 };
 
 export type CharacterSkill = {
@@ -61,7 +72,7 @@ export type InventoryItem = {
   readonly description?: string;
 };
 
-export type CharacterPanelTab = "inventory" | "skills" | "abilities";
+export type CharacterPanelTab = "inventory" | "skills" | "abilities" | "delete";
 
 export type ClientMessage = {
   readonly type: "command";
@@ -77,7 +88,7 @@ export type OutputMessage = {
 
 export type ScreenMessage = {
   readonly type: "screen";
-  readonly payload: RoomScreenPayload;
+  readonly payload: RoomScreenPayload | ConversationScreenPayload;
 };
 
 export type EventMessage = {
@@ -103,7 +114,7 @@ export type CombatTarget = {
 export type CombatLogEntry = {
   readonly timestamp: number;
   readonly text: string;
-  readonly kind: "hit" | "miss" | "crit" | "heal" | "system" | "queue" | "flee" | "defeat";
+  readonly kind: "hit" | "miss" | "crit" | "heal" | "system" | "queue" | "flee" | "defeat" | "error";
 };
 
 export type VitalsPayload = {
@@ -113,4 +124,57 @@ export type VitalsPayload = {
   readonly max_stamina: number;
   readonly mana: number;
   readonly max_mana: number;
+};
+
+export type DialogResponse = {
+  readonly label?: string;
+  readonly next_node_id?: string;
+  readonly command?: string;
+  readonly condition?: string;
+  readonly quest_offer_id?: string;
+  readonly decline_node_id?: string;
+  readonly effects?: readonly number[];
+};
+
+export type DialogNode = {
+  readonly id: string;
+  readonly npc_template_id: string;
+  readonly npc_text: string;
+  readonly responses: readonly DialogResponse[];
+  readonly is_entry: boolean;
+  readonly entry_condition?: string;
+  readonly on_enter_effects?: readonly number[];
+};
+
+// Shop types (NPC-006 - Vendor NPCs)
+
+export type ShopItem = {
+  readonly id: number;
+  readonly shop_id: number;
+  readonly equipment_template_id: number;
+  readonly name: string;
+  readonly description: string;
+  readonly category: string;
+  readonly price: number;
+  readonly quantity: number;
+  readonly max_stock: number;
+  readonly is_enabled: boolean;
+  readonly last_restocked?: number;
+  // Equipment-specific fields
+  readonly slot?: string;
+  readonly rarity?: string;
+  readonly damage_dice_count?: number;
+  readonly damage_dice_sides?: number;
+  readonly damage_bonus?: number;
+  readonly damage_type?: string;
+};
+
+export type ShopSession = {
+  readonly shop_id: number;
+  readonly name: string;
+  readonly vendor_name: string;
+  readonly npc_template_id?: string;
+  readonly currency_name: string;
+  readonly gold: number;
+  readonly items: readonly ShopItem[];
 };

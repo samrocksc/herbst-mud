@@ -106,6 +106,12 @@ func listCharacters(repos *repository.Container) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+		// Filter by world_id if provided
+		if worldID := c.Query("world_id"); worldID != "" {
+			characters = slices.DeleteFunc(characters, func(ch *db.Character) bool {
+				return ch.CurrentWorld != worldID
+			})
+		}
 		if search := c.Query("search"); search != "" {
 			s := strings.ToLower(search)
 			characters = slices.DeleteFunc(characters, func(ch *db.Character) bool {

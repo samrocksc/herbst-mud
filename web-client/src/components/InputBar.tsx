@@ -67,7 +67,10 @@ const InputBar = forwardRef<InputBarHandle, Props>(function InputBar({ onSubmit,
   }, [handleSubmit, history, historyIndex, setHistoryIndex, onSubmit]);
 
   return (
-    <div className="shrink-0 bg-surface border-t border-border px-3 py-2 flex gap-2 items-center">
+    <div
+      className="shrink-0 bg-surface border-t border-border px-3 py-2 flex gap-2 items-center"
+      style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+    >
       <span className="text-accent font-mono">&gt;</span>
       <input
         ref={inputRef}

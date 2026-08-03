@@ -786,6 +786,18 @@ func init() {
 	npctemplateDescNotifyOnEnter := npctemplateFields[21].Descriptor()
 	// npctemplate.DefaultNotifyOnEnter holds the default value on creation for the notify_on_enter field.
 	npctemplate.DefaultNotifyOnEnter = npctemplateDescNotifyOnEnter.Default.(bool)
+	// npctemplateDescIsBoss is the schema descriptor for is_boss field.
+	npctemplateDescIsBoss := npctemplateFields[22].Descriptor()
+	// npctemplate.DefaultIsBoss holds the default value on creation for the is_boss field.
+	npctemplate.DefaultIsBoss = npctemplateDescIsBoss.Default.(bool)
+	// npctemplateDescGoldMin is the schema descriptor for gold_min field.
+	npctemplateDescGoldMin := npctemplateFields[23].Descriptor()
+	// npctemplate.DefaultGoldMin holds the default value on creation for the gold_min field.
+	npctemplate.DefaultGoldMin = npctemplateDescGoldMin.Default.(int)
+	// npctemplateDescGoldMax is the schema descriptor for gold_max field.
+	npctemplateDescGoldMax := npctemplateFields[24].Descriptor()
+	// npctemplate.DefaultGoldMax holds the default value on creation for the gold_max field.
+	npctemplate.DefaultGoldMax = npctemplateDescGoldMax.Default.(int)
 	questFields := schema.Quest{}.Fields()
 	_ = questFields
 	// questDescWorldID is the schema descriptor for world_id field.

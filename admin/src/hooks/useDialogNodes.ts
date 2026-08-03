@@ -42,10 +42,13 @@ export function useDialogNodes(templateId: string) {
   return useQuery({
     queryKey: ["dialog-nodes", templateId, currentWorld],
     queryFn: async (): Promise<DialogNode[]> => {
-      const data = await apiGet<{ dialog_nodes: DialogNode[] }>(`${API}/api/npc-templates/${templateId}/dialog-nodes${qs}`);
-      return data.dialog_nodes ?? [];
+      const data = await apiGet<DialogNode[] | { dialog_nodes: DialogNode[] }>(`${API}/api/npc-templates/${templateId}/dialog-nodes${qs}`);
+      // apiFetch auto-unwraps { dialog_nodes: [...] } to just [...], but handle both shapes
+      if (Array.isArray(data)) return data;
+      if (data && Array.isArray(data.dialog_nodes)) return data.dialog_nodes;
+      return [];
     },
-    enabled: !!templateId && !!currentWorld,
+    enabled: !!templateId,
   });
 }
 

@@ -57,6 +57,7 @@ import { Route as AuthGendersRouteImport } from './routes/_auth/genders'
 import { Route as AuthGameSkillsRouteImport } from './routes/_auth/game-skills'
 import { Route as AuthFactionsRouteImport } from './routes/_auth/factions'
 import { Route as AuthExportRouteImport } from './routes/_auth/export'
+import { Route as AuthEventLogsRouteImport } from './routes/_auth/event-logs'
 import { Route as AuthEffectsRouteImport } from './routes/_auth/effects'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
 import { Route as AuthConfigRouteImport } from './routes/_auth/config'
@@ -334,6 +335,11 @@ const AuthExportRoute = AuthExportRouteImport.update({
   path: '/export',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthEventLogsRoute = AuthEventLogsRouteImport.update({
+  id: '/event-logs',
+  path: '/event-logs',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthEffectsRoute = AuthEffectsRouteImport.update({
   id: '/effects',
   path: '/effects',
@@ -540,6 +546,7 @@ export interface FileRoutesByFullPath {
   '/config': typeof AuthConfigRouteWithChildren
   '/dashboard': typeof AuthDashboardRoute
   '/effects': typeof AuthEffectsRoute
+  '/event-logs': typeof AuthEventLogsRoute
   '/export': typeof AuthExportRoute
   '/factions': typeof AuthFactionsRoute
   '/game-skills': typeof AuthGameSkillsRoute
@@ -624,6 +631,7 @@ export interface FileRoutesByTo {
   '/config': typeof AuthConfigRouteWithChildren
   '/dashboard': typeof AuthDashboardRoute
   '/effects': typeof AuthEffectsRoute
+  '/event-logs': typeof AuthEventLogsRoute
   '/export': typeof AuthExportRoute
   '/factions': typeof AuthFactionsRoute
   '/game-skills': typeof AuthGameSkillsRoute
@@ -711,6 +719,7 @@ export interface FileRoutesById {
   '/_auth/config': typeof AuthConfigRouteWithChildren
   '/_auth/dashboard': typeof AuthDashboardRoute
   '/_auth/effects': typeof AuthEffectsRoute
+  '/_auth/event-logs': typeof AuthEventLogsRoute
   '/_auth/export': typeof AuthExportRoute
   '/_auth/factions': typeof AuthFactionsRoute
   '/_auth/game-skills': typeof AuthGameSkillsRoute
@@ -799,6 +808,7 @@ export interface FileRouteTypes {
     | '/config'
     | '/dashboard'
     | '/effects'
+    | '/event-logs'
     | '/export'
     | '/factions'
     | '/game-skills'
@@ -883,6 +893,7 @@ export interface FileRouteTypes {
     | '/config'
     | '/dashboard'
     | '/effects'
+    | '/event-logs'
     | '/export'
     | '/factions'
     | '/game-skills'
@@ -969,6 +980,7 @@ export interface FileRouteTypes {
     | '/_auth/config'
     | '/_auth/dashboard'
     | '/_auth/effects'
+    | '/_auth/event-logs'
     | '/_auth/export'
     | '/_auth/factions'
     | '/_auth/game-skills'
@@ -1388,6 +1400,13 @@ declare module '@tanstack/react-router' {
       path: '/export'
       fullPath: '/export'
       preLoaderRoute: typeof AuthExportRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/event-logs': {
+      id: '/_auth/event-logs'
+      path: '/event-logs'
+      fullPath: '/event-logs'
+      preLoaderRoute: typeof AuthEventLogsRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/effects': {
@@ -1874,6 +1893,7 @@ interface AuthRouteChildren {
   AuthConfigRoute: typeof AuthConfigRouteWithChildren
   AuthDashboardRoute: typeof AuthDashboardRoute
   AuthEffectsRoute: typeof AuthEffectsRoute
+  AuthEventLogsRoute: typeof AuthEventLogsRoute
   AuthExportRoute: typeof AuthExportRoute
   AuthFactionsRoute: typeof AuthFactionsRoute
   AuthGameSkillsRoute: typeof AuthGameSkillsRoute
@@ -1905,6 +1925,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthConfigRoute: AuthConfigRouteWithChildren,
   AuthDashboardRoute: AuthDashboardRoute,
   AuthEffectsRoute: AuthEffectsRoute,
+  AuthEventLogsRoute: AuthEventLogsRoute,
   AuthExportRoute: AuthExportRoute,
   AuthFactionsRoute: AuthFactionsRoute,
   AuthGameSkillsRoute: AuthGameSkillsRoute,

@@ -5,7 +5,7 @@ import { Button, Card, CardBody } from "../ui";
 
 export type WorldScreenProps = {
   onLogout: () => void
-  onSelectWorld: (name: string) => void
+  onSelectWorld: (worldId: string, worldName: string) => void
 };
 
 export default function WorldScreen( { onLogout, onSelectWorld  }: Readonly<WorldScreenProps>) {
@@ -70,13 +70,13 @@ export default function WorldScreen( { onLogout, onSelectWorld  }: Readonly<Worl
 
             <ul className="space-y-3">
               {worlds.map((w) => (
-                <li key={w.name}>
-                  <Card hover onClick={() => onSelectWorld(w.name)}>
+                <li key={w.id}>
+                  <Card hover onClick={() => onSelectWorld(w.id, w.name)}>
                     <CardBody>
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="font-bold text-sm">{w.name}</h3>
-                          <p className="text-[11px] text-muted mt-1">{w.file}</p>
+                          <p className="text-[11px] text-muted mt-1">{w.description}</p>
                         </div>
                         <span className="text-xs text-accent">→</span>
                       </div>

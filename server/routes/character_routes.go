@@ -48,6 +48,8 @@ func RegisterCharacterRoutes(router *gin.Engine, svc *service.Container, repos *
 		chars.GET("/:id/gold", getCharacterGold(repos))
 		chars.POST("/:id/gold", addCharacterGold(repos))
 		chars.DELETE("/:id/gold", spendCharacterGold(repos))
+		// Biography
+		chars.GET("/:id/biography", handleGetBiography(client))
 	}
 	// NPC routes
 	router.GET("/npcs/room/:id", getNPCsByRoom(repos))

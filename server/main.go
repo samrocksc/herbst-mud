@@ -353,6 +353,10 @@ func main() {
 	routes.RegisterNPCInstanceRoutes(router, repos, client)
 	// Register item instance routes (NPC-005)
 	routes.RegisterItemInstanceRoutes(router, repos, client)
+	// Register shop routes (NPC-006 - Vendor NPCs)
+	routes.RegisterShopRoutes(router, repos)
+	// Public shop endpoint for game client (no admin required)
+	router.GET("/api/shop", routes.GetShopByNPC(repos))
 	// Register equipment template routes
 	routes.RegisterEquipmentTemplateRoutes(router, repos)
 

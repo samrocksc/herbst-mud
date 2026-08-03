@@ -1,6 +1,7 @@
 import React, { createContext, useContext } from "react";
 import { useMUDSocket } from "../hooks/useMUDSocket";
 import type { ConversationState } from "../hooks/useMUDSocket";
+import type { ShopSession } from "../lib/types";
 
 interface MUDConnectionContextType {
   state: string;
@@ -8,6 +9,8 @@ interface MUDConnectionContextType {
   roomScreen: any;
   conversation: ConversationState | null;
   clearConversation: () => void;
+  shopData: ShopSession | null;
+  clearShopData: () => void;
   vitals: any;
   debugLog: any[];
   connect: (url: string) => void;
@@ -28,6 +31,8 @@ export const MUDConnectionProvider: React.FC<{ children: React.ReactNode }> = ({
       roomScreen: socket.roomScreen,
       conversation: socket.conversation,
       clearConversation: socket.clearConversation,
+      shopData: socket.shopData,
+      clearShopData: socket.clearShopData,
       vitals: socket.vitals,
       debugLog: socket.debugLog,
       connect: socket.connect,

@@ -60,6 +60,12 @@ export function CharactersIndex() {
     { header: "Class", accessor: "class" },
     { header: "Level", accessor: "level", align: "center" },
     {
+      header: "World",
+      accessor: "currentWorld",
+      align: "center",
+      render: (_, row) => <span className="font-mono text-xs text-text-muted">{row.currentWorld}</span>,
+    },
+    {
       header: "CHA",
       accessor: "charisma",
       align: "center",

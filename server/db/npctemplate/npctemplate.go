@@ -56,6 +56,12 @@ const (
 	FieldLastMovedAt = "last_moved_at"
 	// FieldNotifyOnEnter holds the string denoting the notify_on_enter field in the database.
 	FieldNotifyOnEnter = "notify_on_enter"
+	// FieldIsBoss holds the string denoting the is_boss field in the database.
+	FieldIsBoss = "is_boss"
+	// FieldGoldMin holds the string denoting the gold_min field in the database.
+	FieldGoldMin = "gold_min"
+	// FieldGoldMax holds the string denoting the gold_max field in the database.
+	FieldGoldMax = "gold_max"
 	// EdgeNpcAbilities holds the string denoting the npc_abilities edge name in mutations.
 	EdgeNpcAbilities = "npc_abilities"
 	// EdgeHooks holds the string denoting the hooks edge name in mutations.
@@ -127,6 +133,9 @@ var Columns = []string{
 	FieldRoamPauseMaxSeconds,
 	FieldLastMovedAt,
 	FieldNotifyOnEnter,
+	FieldIsBoss,
+	FieldGoldMin,
+	FieldGoldMax,
 }
 
 var (
@@ -164,6 +173,12 @@ var (
 	DefaultRoamPauseMaxSeconds int
 	// DefaultNotifyOnEnter holds the default value on creation for the "notify_on_enter" field.
 	DefaultNotifyOnEnter bool
+	// DefaultIsBoss holds the default value on creation for the "is_boss" field.
+	DefaultIsBoss bool
+	// DefaultGoldMin holds the default value on creation for the "gold_min" field.
+	DefaultGoldMin int
+	// DefaultGoldMax holds the default value on creation for the "gold_max" field.
+	DefaultGoldMax int
 )
 
 // Disposition defines the type for the "disposition" enum field.
@@ -174,9 +189,10 @@ const DefaultDisposition = DispositionNeutral
 
 // Disposition values.
 const (
-	DispositionHostile  Disposition = "hostile"
-	DispositionFriendly Disposition = "friendly"
-	DispositionNeutral  Disposition = "neutral"
+	DispositionHostile    Disposition = "hostile"
+	DispositionFriendly   Disposition = "friendly"
+	DispositionNeutral    Disposition = "neutral"
+	DispositionShopkeeper Disposition = "shopkeeper"
 )
 
 func (d Disposition) String() string {
@@ -186,7 +202,7 @@ func (d Disposition) String() string {
 // DispositionValidator is a validator for the "disposition" field enum values. It is called by the builders before save.
 func DispositionValidator(d Disposition) error {
 	switch d {
-	case DispositionHostile, DispositionFriendly, DispositionNeutral:
+	case DispositionHostile, DispositionFriendly, DispositionNeutral, DispositionShopkeeper:
 		return nil
 	default:
 		return fmt.Errorf("npctemplate: invalid enum value for disposition field: %q", d)
@@ -312,6 +328,21 @@ func ByLastMovedAt(opts ...sql.OrderTermOption) OrderOption {
 // ByNotifyOnEnter orders the results by the notify_on_enter field.
 func ByNotifyOnEnter(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldNotifyOnEnter, opts...).ToFunc()
+}
+
+// ByIsBoss orders the results by the is_boss field.
+func ByIsBoss(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldIsBoss, opts...).ToFunc()
+}
+
+// ByGoldMin orders the results by the gold_min field.
+func ByGoldMin(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGoldMin, opts...).ToFunc()
+}
+
+// ByGoldMax orders the results by the gold_max field.
+func ByGoldMax(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldGoldMax, opts...).ToFunc()
 }
 
 // ByNpcAbilitiesCount orders the results by npc_abilities count.

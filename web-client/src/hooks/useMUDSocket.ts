@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { RoomScreenPayload, VitalsPayload } from "../lib/types";
+import type { RoomScreenPayload, VitalsPayload, ShopSession } from "../lib/types";
 
 export type ConnectionState = "idle" | "connecting" | "connected" | "error" | "closed";
 
@@ -45,6 +45,7 @@ interface HookRefs {
   linesRef: { current: WSLine[] };
   roomScreenRef: { current: RoomScreenPayload | null };
   conversationRef: { current: ConversationState | null };
+  shopDataRef: { current: ShopSession | null };
   vitalsRef: { current: VitalsPayload | null };
   debugLogRef: { current: DebugEntry[] };
   wsRef: { current: WebSocket | null };
@@ -60,10 +61,16 @@ export function useMUDSocket() {
   const [lines, setLines] = useState<WSLine[]>([]);
   const [roomScreen, setRoomScreen] = useState<RoomScreenPayload | null>(null);
   const [conversation, setConversation] = useState<ConversationState | null>(null);
+  const [shopData, setShopData] = useState<ShopSession | null>(null);
 
   const clearConversation = useCallback(() => {
     conversationRef.current = null;
     setConversation(null);
+  }, []);
+
+  const clearShopData = useCallback(() => {
+    shopDataRef.current = null;
+    setShopData(null);
   }, []);
   const [vitals, setVitals] = useState<VitalsPayload | null>(null);
   const [debugLog, setDebugLog] = useState<DebugEntry[]>([]);
@@ -79,6 +86,7 @@ export function useMUDSocket() {
       linesRef: { current: [] },
       roomScreenRef: { current: null },
       conversationRef: { current: null },
+      shopDataRef: { current: null },
       vitalsRef: { current: null },
       debugLogRef: { current: [] },
       wsRef: { current: null },
@@ -96,6 +104,7 @@ export function useMUDSocket() {
   const linesRef = refs.linesRef;
   const roomScreenRef = refs.roomScreenRef;
   const conversationRef = refs.conversationRef;
+  const shopDataRef = refs.shopDataRef;
   const vitalsRef = refs.vitalsRef;
   const debugLogRef = refs.debugLogRef;
   const wsRef = refs.wsRef;
@@ -196,6 +205,14 @@ export function useMUDSocket() {
           logDebug("state", "vitals payload received");
           vitalsRef.current = msg.data as VitalsPayload;
           setVitals(msg.data as VitalsPayload);
+          return;
+        }
+
+        if (msg.type === "shop" && msg.data) {
+          logDebug("state", "shop payload received");
+          const shopPayload = msg.data as ShopSession;
+          shopDataRef.current = shopPayload;
+          setShopData(shopPayload);
           return;
         }
 
@@ -310,6 +327,8 @@ export function useMUDSocket() {
     roomScreen,
     conversation,
     clearConversation,
+    shopData,
+    clearShopData,
     vitals,
     debugLog,
     connect: cached.connect,

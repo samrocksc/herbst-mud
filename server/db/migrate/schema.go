@@ -762,7 +762,7 @@ var (
 	// FactionsColumns holds the columns for the "factions" table.
 	FactionsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "name", Type: field.TypeString},
 		{Name: "world_id", Type: field.TypeString, Default: "1"},
 		{Name: "display_name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Nullable: true},
@@ -782,6 +782,13 @@ var (
 				Columns:    []*schema.Column{FactionsColumns[8]},
 				RefColumns: []*schema.Column{FactionCategoriesColumns[0]},
 				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "faction_name_world_id",
+				Unique:  true,
+				Columns: []*schema.Column{FactionsColumns[1], FactionsColumns[2]},
 			},
 		},
 	}
@@ -884,7 +891,7 @@ var (
 		{Name: "world_id", Type: field.TypeString, Default: "1"},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Size: 2147483647},
-		{Name: "disposition", Type: field.TypeEnum, Enums: []string{"hostile", "friendly", "neutral"}, Default: "neutral"},
+		{Name: "disposition", Type: field.TypeEnum, Enums: []string{"hostile", "friendly", "neutral", "shopkeeper"}, Default: "neutral"},
 		{Name: "level", Type: field.TypeInt, Default: 1},
 		{Name: "xp_value", Type: field.TypeInt, Default: 0},
 		{Name: "xp_multiplier", Type: field.TypeFloat64, Default: 1},
@@ -900,6 +907,9 @@ var (
 		{Name: "roam_pause_max_seconds", Type: field.TypeInt, Nullable: true, Default: 120},
 		{Name: "last_moved_at", Type: field.TypeTime, Nullable: true},
 		{Name: "notify_on_enter", Type: field.TypeBool, Nullable: true, Default: false},
+		{Name: "is_boss", Type: field.TypeBool, Nullable: true, Default: false},
+		{Name: "gold_min", Type: field.TypeInt, Nullable: true, Default: 0},
+		{Name: "gold_max", Type: field.TypeInt, Nullable: true, Default: 0},
 		{Name: "race_id", Type: field.TypeInt, Nullable: true},
 	}
 	// NpcTemplatesTable holds the schema information for the "npc_templates" table.
@@ -910,7 +920,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "npc_templates_races_npc_templates",
-				Columns:    []*schema.Column{NpcTemplatesColumns[21]},
+				Columns:    []*schema.Column{NpcTemplatesColumns[24]},
 				RefColumns: []*schema.Column{RacesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -1183,6 +1193,11 @@ var (
 				Name:    "systemlog_action_timestamp",
 				Unique:  false,
 				Columns: []*schema.Column{SystemLogsColumns[1], SystemLogsColumns[4]},
+			},
+			{
+				Name:    "systemlog_character_id",
+				Unique:  false,
+				Columns: []*schema.Column{SystemLogsColumns[2]},
 			},
 		},
 	}

@@ -9,6 +9,7 @@ import (
 // ShopTemplateRepo defines the repository interface for ShopTemplate.
 type ShopTemplateRepo interface {
 	Get(ctx context.Context, id int) (*db.ShopTemplate, error)
+	GetByNPCTemplateID(ctx context.Context, npcTemplateID string) (*db.ShopTemplate, error)
 	List(ctx context.Context, worldID string) ([]*db.ShopTemplate, error)
 	Create(ctx context.Context, input CreateShopTemplateInput) (*db.ShopTemplate, error)
 	Update(ctx context.Context, id int, updates ShopTemplateUpdates) (*db.ShopTemplate, error)

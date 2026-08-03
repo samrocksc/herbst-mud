@@ -59,8 +59,8 @@ stop-web: ## Stop the web server
 	echo "Web server stopped."
 
 start-admin: ## Start the admin frontend in the background
-	@echo "Starting admin frontend..."
-	@cd admin && npm run dev &
+	@echo "Starting admin frontend on port 5173..."
+	@cd admin && (npm run build:routes & npm run dev > /tmp/herbst-admin.log 2>&1) &
 	@echo $$! > .admin.pid && echo "Admin frontend started with PID $$(cat .admin.pid)"
 
 stop-admin: ## Stop the admin frontend
@@ -97,7 +97,7 @@ dev-all: ## Build and start all services (SSH + web + admin + web client)
 	@fuser -k 4444/tcp 8080/tcp 5173/tcp 5174/tcp 2>/dev/null; sleep 1
 	@herbst/herbst > /tmp/herbst-ssh.log 2>&1 & echo $$! > .herbst.pid
 	@server/herbst-web > /tmp/herbst-web.log 2>&1 & echo $$! > .web.pid
-	@cd admin && npm run dev > /tmp/herbst-admin.log 2>&1 & echo $$! > .admin.pid
+	@cd admin && npm run build:routes && vite --port 5173 > /tmp/herbst-admin.log 2>&1 & echo $$! > .admin.pid
 	@cd web-client && npm run dev > /tmp/herbst-client.log 2>&1 & echo $$! > .client.pid
 	@sleep 2
 	@echo "SSH: $$(cat .herbst.pid) | Web: $$(cat .web.pid) | Admin: $$(cat .admin.pid) | Client: $$(cat .client.pid)"
@@ -147,6 +147,12 @@ token: ## Generate a Bearer token for API debugging
 	@echo "Usage: make token USER_ID=1 EMAIL=example@test.com IS_ADMIN=true"
 	@echo ""
 	@cd server && go run cmd/token/main.go "${USER_ID}" "${EMAIL}" "${IS_ADMIN}"
+
+start-root-pw: ## Hash and set root password to default
+	@echo "Setting root password..."
+	@HASH=$$(go run -mod=mod -e 'package main; import ("fmt"; "golang.org/x/crypto/bcrypt"); func main() { h, _ := bcrypt.GenerateFromPassword([]byte("herb5t2026!"), bcrypt.DefaultCost); fmt.Print(string(h)) }')
+	@docker exec herbst-mud-postgres-1 psql -U herbst -d herbst_mud -c "UPDATE users SET password = '$$HASH' WHERE email = 'admin@herbstmud.local';"
+	@echo "Root password set to herb5t2026!"
 
 # ── Production Deployment ────────────────────────────────────────
 

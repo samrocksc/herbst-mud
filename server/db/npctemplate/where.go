@@ -140,6 +140,21 @@ func NotifyOnEnter(v bool) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldEQ(FieldNotifyOnEnter, v))
 }
 
+// IsBoss applies equality check predicate on the "is_boss" field. It's identical to IsBossEQ.
+func IsBoss(v bool) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldIsBoss, v))
+}
+
+// GoldMin applies equality check predicate on the "gold_min" field. It's identical to GoldMinEQ.
+func GoldMin(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldGoldMin, v))
+}
+
+// GoldMax applies equality check predicate on the "gold_max" field. It's identical to GoldMaxEQ.
+func GoldMax(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldGoldMax, v))
+}
+
 // SlugEQ applies the EQ predicate on the "slug" field.
 func SlugEQ(v string) predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldEQ(FieldSlug, v))
@@ -953,6 +968,126 @@ func NotifyOnEnterIsNil() predicate.NPCTemplate {
 // NotifyOnEnterNotNil applies the NotNil predicate on the "notify_on_enter" field.
 func NotifyOnEnterNotNil() predicate.NPCTemplate {
 	return predicate.NPCTemplate(sql.FieldNotNull(FieldNotifyOnEnter))
+}
+
+// IsBossEQ applies the EQ predicate on the "is_boss" field.
+func IsBossEQ(v bool) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldIsBoss, v))
+}
+
+// IsBossNEQ applies the NEQ predicate on the "is_boss" field.
+func IsBossNEQ(v bool) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNEQ(FieldIsBoss, v))
+}
+
+// IsBossIsNil applies the IsNil predicate on the "is_boss" field.
+func IsBossIsNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIsNull(FieldIsBoss))
+}
+
+// IsBossNotNil applies the NotNil predicate on the "is_boss" field.
+func IsBossNotNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotNull(FieldIsBoss))
+}
+
+// GoldMinEQ applies the EQ predicate on the "gold_min" field.
+func GoldMinEQ(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldGoldMin, v))
+}
+
+// GoldMinNEQ applies the NEQ predicate on the "gold_min" field.
+func GoldMinNEQ(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNEQ(FieldGoldMin, v))
+}
+
+// GoldMinIn applies the In predicate on the "gold_min" field.
+func GoldMinIn(vs ...int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIn(FieldGoldMin, vs...))
+}
+
+// GoldMinNotIn applies the NotIn predicate on the "gold_min" field.
+func GoldMinNotIn(vs ...int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotIn(FieldGoldMin, vs...))
+}
+
+// GoldMinGT applies the GT predicate on the "gold_min" field.
+func GoldMinGT(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGT(FieldGoldMin, v))
+}
+
+// GoldMinGTE applies the GTE predicate on the "gold_min" field.
+func GoldMinGTE(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGTE(FieldGoldMin, v))
+}
+
+// GoldMinLT applies the LT predicate on the "gold_min" field.
+func GoldMinLT(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLT(FieldGoldMin, v))
+}
+
+// GoldMinLTE applies the LTE predicate on the "gold_min" field.
+func GoldMinLTE(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLTE(FieldGoldMin, v))
+}
+
+// GoldMinIsNil applies the IsNil predicate on the "gold_min" field.
+func GoldMinIsNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIsNull(FieldGoldMin))
+}
+
+// GoldMinNotNil applies the NotNil predicate on the "gold_min" field.
+func GoldMinNotNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotNull(FieldGoldMin))
+}
+
+// GoldMaxEQ applies the EQ predicate on the "gold_max" field.
+func GoldMaxEQ(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldEQ(FieldGoldMax, v))
+}
+
+// GoldMaxNEQ applies the NEQ predicate on the "gold_max" field.
+func GoldMaxNEQ(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNEQ(FieldGoldMax, v))
+}
+
+// GoldMaxIn applies the In predicate on the "gold_max" field.
+func GoldMaxIn(vs ...int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIn(FieldGoldMax, vs...))
+}
+
+// GoldMaxNotIn applies the NotIn predicate on the "gold_max" field.
+func GoldMaxNotIn(vs ...int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotIn(FieldGoldMax, vs...))
+}
+
+// GoldMaxGT applies the GT predicate on the "gold_max" field.
+func GoldMaxGT(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGT(FieldGoldMax, v))
+}
+
+// GoldMaxGTE applies the GTE predicate on the "gold_max" field.
+func GoldMaxGTE(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldGTE(FieldGoldMax, v))
+}
+
+// GoldMaxLT applies the LT predicate on the "gold_max" field.
+func GoldMaxLT(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLT(FieldGoldMax, v))
+}
+
+// GoldMaxLTE applies the LTE predicate on the "gold_max" field.
+func GoldMaxLTE(v int) predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldLTE(FieldGoldMax, v))
+}
+
+// GoldMaxIsNil applies the IsNil predicate on the "gold_max" field.
+func GoldMaxIsNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldIsNull(FieldGoldMax))
+}
+
+// GoldMaxNotNil applies the NotNil predicate on the "gold_max" field.
+func GoldMaxNotNil() predicate.NPCTemplate {
+	return predicate.NPCTemplate(sql.FieldNotNull(FieldGoldMax))
 }
 
 // HasNpcAbilities applies the HasEdge predicate on the "npc_abilities" edge.

@@ -36,8 +36,9 @@ export default defineConfig({
           if (accept.includes("text/html")) return "./index.html";
           // Allow /npcs and /npcs?world_id=X through to backend.
           // Only block sub-paths like /npcs/room/1 or /npcs/something/else.
-          if (!req.url.startsWith("/npcs")) return "./index.html";
-          if (req.url.startsWith("/npcs/")) return "./index.html";
+          const url = req.url ?? "";
+          if (!url.startsWith("/npcs")) return "./index.html";
+          if (url.startsWith("/npcs/")) return "./index.html";
         },
       },
       "/characters": {
@@ -59,12 +60,19 @@ export default defineConfig({
           // API data fetch → no text/html Accept; SPA page load → text/html.
           const accept = req.headers.accept ?? "";
           if (accept.includes("text/html")) return "./index.html";
+          const url = req.url ?? "";
+          if (url.startsWith("/skills/")) return "./index.html";
+          return "./index.html";
         },
       },
       // Auth endpoint
       "/users": "http://localhost:8080",
+      // Classes endpoint (used by useClasses hook for DB-backed class lists)
+      "/classes": "http://localhost:8080",
       // Health endpoint
       "/healthz": "http://localhost:8080",
+      // User-character endpoints
+      "/user-characters": "http://localhost:8080",
       // Admin routes
       "/admin": "http://localhost:8080",
     }

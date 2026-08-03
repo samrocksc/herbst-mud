@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useTheme } from "../lib/theme";
 import { type Character, type Ability, getCharacterAbilities, listClasslessAbilities, equipAbility, unequipAbility, deleteCharacter } from "../lib/api";
-import { type CharacterSkill, type CharacterPanelTab, type InventoryItem, type RoomCharacter, type ShopSession } from "../lib/types";
+import { type CharacterSkill, type CharacterPanelTab, type InventoryItem, type RoomCharacter } from "../lib/types";
 import { useMUDConnection } from "../context/MUDConnectionProvider";
 import { Button } from "../ui";
 import { useCombatEngine } from "../hooks/useCombatEngine";
@@ -44,7 +44,7 @@ export default function GameScreen({
   onDisconnect,
   token,
 }: Readonly<GameScreenProps>) {
-  const { state, lines, roomScreen, conversation, clearConversation, vitals, debugLog, connect, send, pushLocal } =
+  const { state, lines, roomScreen, conversation, clearConversation, shopData, clearShopData, vitals, debugLog, connect, send, pushLocal } =
     useMUDConnection();
   const { theme, toggle } = useTheme();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -63,7 +63,6 @@ export default function GameScreen({
   const [potionCount] = useState(0);
   const [equipmentOpen, setEquipmentOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
-  const [shopSession, setShopSession] = useState<{ shop: ShopSession; npcName: string } | null>(null);
   const [conversationOpen, setConversationOpen] = useState(false);
 
   // Convert API Ability type to useCombatEngine's AbilityData type
@@ -138,7 +137,7 @@ export default function GameScreen({
       setAvailableAbilities(classless);
       const newSkills: CharacterSkill[] = [];
       for (let slot = 1; slot <= 4; slot++) {
-        const entry = charAbilities.slots[slot - 1] as (Ability & { slot?: number }) | null;
+        const entry = charAbilities.slots[slot] as (Ability & { slot?: number }) | null;
         if (entry?.name) {
           newSkills.push({ slot, name: entry.name });
         } else {
@@ -244,23 +243,18 @@ export default function GameScreen({
       pushLocal(`> ${text}`, "input");
       setCommandHistory((prev) => [text, ...prev].slice(0, 50));
       setHistoryIndex(-1);
-      // Handle shop command locally - don't send to server
-      if (text.startsWith("shop ")) {
-        const parts = text.split(" ");
-        if (parts.length < 2) {
-          pushLocal("Shop with whom? (shop <npc_name>)", "error");
-          return;
-        }
-        const npcName = parts.slice(1).join(" ");
-        // Set shopOpen with the NPC name for selection
-        setShopSession({ shop: { id: 0, name: "Shop", vendorName: npcName, currencyName: "gold", gold: 0, items: [] }, npcName });
-        setShopOpen(true);
-        return;
-      }
+      // "shop" command is sent to server — server responds with shop payload
       send("command", text.trim());
     },
     [send, pushLocal],
   );
+
+  // Handle shop data from WebSocket — open shop screen when server sends shop payload
+  useEffect(() => {
+    if (shopData) {
+      setShopOpen(true);
+    }
+  }, [shopData]);
 
   // Handle conversation screen from WebSocket
   useEffect(() => {
@@ -412,8 +406,11 @@ export default function GameScreen({
   );
 
   return (
-    <div className="flex flex-col h-screen w-full bg-background text-foreground font-mono overflow-hidden">
-      <header className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-border bg-surface">
+    <div
+      className="flex flex-col w-full bg-background text-foreground font-mono overflow-hidden game-screen-root"
+      style={{ height: "100dvh" }}
+    >
+      <header className="shrink-0 flex items-center justify-between px-3 py-2 border-b border-border bg-surface" style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))" }}>
         <div className="flex items-center gap-2 text-xs">
           <button
             type="button"
@@ -521,13 +518,15 @@ export default function GameScreen({
                 setConversationOpen(false);
               }}
             />
-          ) : shopOpen && shopSession ? (
+          ) : shopOpen && shopData ? (
             <ShopScreen
-              shop={shopSession.shop}
+              shop={shopData}
               onTransactionLog={(text) => pushLocal(text, "system")}
-              onShopClose={() => setShopOpen(false)}
+              onShopClose={() => {
+                setShopOpen(false);
+                clearShopData();
+              }}
               onGoldChange={(gold) => {
-                // Update vitals gold if available
                 void gold;
               }}
             />

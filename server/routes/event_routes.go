@@ -193,6 +193,8 @@ func handleEventDebug(logger *slog.Logger) gin.HandlerFunc {
 			"registered_events": []string{
 				string(events.EventNPCDefeated),
 				string(events.EventCharacterDied),
+				string(events.EventCharacterRespawned),
+				string(events.EventBossKilled),
 				string(events.EventLevelUp),
 				string(events.EventQuestComplete),
 				string(events.EventSkillLearned),

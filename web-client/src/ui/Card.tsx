@@ -18,13 +18,20 @@ export function Card({ children, className = "", onClick, hover = false }: CardP
 
   if (onClick) {
     return (
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={onClick}
-        className={`${base} ${hoverClasses} text-left w-full ${className}`}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+        className={`${base} ${hoverClasses} text-left w-full cursor-pointer ${className}`}
       >
         {children}
-      </button>
+      </div>
     );
   }
 

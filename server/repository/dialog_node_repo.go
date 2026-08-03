@@ -34,6 +34,13 @@ func (r *entDialogNodeRepo) ListByTemplate(ctx context.Context, templateID strin
 		All(ctx)
 }
 
+func (r *entDialogNodeRepo) ListByTemplateAndWorld(ctx context.Context, templateID, worldID string) ([]*db.DialogNode, error) {
+	return r.client.DialogNode.Query().
+		Where(dialognode.HasNpcTemplateWith(npctemplate.ID(templateID))).
+		Where(dialognode.WorldIDEQ(worldID)).
+		All(ctx)
+}
+
 func (r *entDialogNodeRepo) Create(ctx context.Context, input CreateDialogNodeInput) (*db.DialogNode, error) {
 	builder := r.client.DialogNode.Create().
 		SetID(input.ID).

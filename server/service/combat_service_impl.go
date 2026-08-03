@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"math/rand"
 	"time"
 
 	"herbst-server/events"
@@ -16,6 +17,7 @@ type combatService struct {
 	npcTmplRepo     repository.NPCTemplateRepo
 	equipRepo       repository.EquipmentRepo
 	resistanceSvc   ResistanceService
+	deathSvc        DeathService
 	logger          *slog.Logger
 }
 
@@ -25,6 +27,7 @@ func NewCombatService(
 	npcTmplRepo repository.NPCTemplateRepo,
 	equipRepo repository.EquipmentRepo,
 	resistanceSvc ResistanceService,
+	deathSvc DeathService,
 	logger *slog.Logger,
 ) CombatService {
 	return &combatService{
@@ -33,6 +36,7 @@ func NewCombatService(
 		npcTmplRepo:   npcTmplRepo,
 		equipRepo:     equipRepo,
 		resistanceSvc: resistanceSvc,
+		deathSvc:      deathSvc,
 		logger:        logger,
 	}
 }
@@ -90,23 +94,118 @@ func (s *combatService) ApplyDamage(ctx context.Context, attackerID, targetID in
 		return nil, err
 	}
 	defeated := newHP == 0
+	var goldDropped int
 	if defeated && updated.IsNPC {
 		baseXP := updated.Level * 100
-		events.Publish(events.Event{
-			Type: events.EventNPCDefeated,
-			Payload: map[string]interface{}{
-				"npc_id":    updated.ID,
-				"npc_level": updated.Level,
-				"base_xp":   baseXP,
-			},
-			Timestamp: time.Now().UnixMilli(),
-		})
+
+		// Enrich the event payload with NPC name, template ID, and attacker info
+		// for biography tracking.
+		npcName := updated.Name
+		npcTemplateID := updated.NpcTemplateID
+		attackerName := ""
+		attackerLevel := 0
+		if attackerID > 0 {
+			if attacker, err := s.charRepo.Get(ctx, attackerID); err == nil {
+				attackerName = attacker.Name
+				attackerLevel = attacker.Level
+			}
+		}
+
+		// Check if this NPC is a boss and roll gold drops
+		isBoss := false
+		if npcTemplateID != "" {
+			if tmpl, err := s.npcTmplRepo.Get(ctx, npcTemplateID); err == nil {
+				isBoss = tmpl.IsBoss
+				// Roll gold: random amount between gold_min and gold_max
+				if tmpl.GoldMax > 0 {
+					min := tmpl.GoldMin
+					max := tmpl.GoldMax
+					if max < min {
+						max = min
+					}
+					if min == max {
+						goldDropped = min
+					} else {
+						goldDropped = min + rand.Intn(max-min+1)
+					}
+				}
+			}
+		}
+
+		// Award gold to attacker
+		if goldDropped > 0 && attackerID > 0 {
+			if attacker, err := s.charRepo.Get(ctx, attackerID); err == nil {
+				newGold := attacker.GoldCredits + goldDropped
+				_, _ = s.charRepo.Update(ctx, attackerID, repository.CharacterUpdates{GoldCredits: &newGold})
+			}
+		}
+
+		// Build the common payload
+		payload := map[string]interface{}{
+			"npc_id":          float64(updated.ID),
+			"npc_name":        npcName,
+			"npc_template_id": npcTemplateID,
+			"npc_level":       float64(updated.Level),
+			"base_xp":         float64(baseXP),
+			"character_id":    float64(attackerID),
+			"character_name":  attackerName,
+			"character_level": float64(attackerLevel),
+			"room_id":         float64(updated.CurrentRoomId),
+			"world_id":        updated.CurrentWorld,
+		}
+
+		if isBoss {
+			// Boss kill: publish boss_killed event for biography + XP
+			payload["is_boss"] = true
+			events.Publish(events.Event{
+				Type:     events.EventBossKilled,
+				Payload:  payload,
+				Timestamp: time.Now().UnixMilli(),
+			})
+			// Also publish npc_defeated so the XP subscriber still awards XP
+			events.Publish(events.Event{
+				Type:     events.EventNPCDefeated,
+				Payload:  payload,
+				Timestamp: time.Now().UnixMilli(),
+			})
+		} else {
+			// Normal NPC defeat
+			events.Publish(events.Event{
+				Type:     events.EventNPCDefeated,
+				Payload:  payload,
+				Timestamp: time.Now().UnixMilli(),
+			})
+		}
+	}
+	// Player death: emit EventCharacterDied and handle respawn.
+	// The event triggers the DeathPenaltySubscriber (XP loss) and the
+	// event log subscriber (biography tracking). The death service
+	// handles respawn — moving to respawn room and restoring vitals.
+	if defeated && !updated.IsNPC && s.deathSvc != nil {
+		attackerName := ""
+		if attackerID > 0 {
+			if attacker, err := s.charRepo.Get(ctx, attackerID); err == nil {
+				attackerName = attacker.Name
+			}
+		}
+		deathResult, err := s.deathSvc.HandlePlayerDeath(ctx, updated.ID, attackerID, attackerName)
+		if err != nil {
+			s.logger.Error("failed to handle player death", "character_id", updated.ID, "error", err)
+		} else if deathResult != nil {
+			return &CombatResult{
+				ID:       updated.ID,
+				HP:       deathResult.NewHP,
+				MaxHP:    updated.MaxHitpoints,
+				Defeated: true,
+				Message:  "You have been slain. Respawning at rally point...",
+			}, nil
+		}
 	}
 	// Persist damage to damage_logs table on every hit
 	if damage > 0 {
 		s.LogDamage(ctx, attackerID, targetID, damage)
 	}
-	return &CombatResult{ID: updated.ID, HP: updated.Hitpoints, MaxHP: updated.MaxHitpoints, Defeated: defeated}, nil
+	return &CombatResult{ID: updated.ID, HP: updated.Hitpoints, MaxHP: updated.MaxHitpoints, Defeated: defeated, GoldDropped: goldDropped}, nil
 }
 
 func (s *combatService) LogDamage(ctx context.Context, attackerID, targetID, damage int) {

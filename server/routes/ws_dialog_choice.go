@@ -49,7 +49,17 @@ func handleDialogChoice(templateID, nodeID, choiceStr string, wsc *WSConn, repos
 
 	applyDialogEffects(ctx, wsc, repos, client, nextNode.OnEnterEffects)
 
-	nodes, _ := repos.DialogNode.ListByTemplate(ctx, templateID)
+	// Fetch character to get current_world for world-scoped dialog node query
+	dialogChar, err := repos.Character.Get(ctx, wsc.CharacterID)
+	if err != nil {
+		dialogChar = nil
+	}
+	var nodes []*db.DialogNode
+	if dialogChar != nil {
+		nodes, _ = repos.DialogNode.ListByTemplateAndWorld(ctx, templateID, dialogChar.CurrentWorld)
+	} else {
+		nodes, _ = repos.DialogNode.ListByTemplate(ctx, templateID)
+	}
 	sendConversationScreen(wsc, tmpl.Name, templateID, nodes, nextNode.ID)
 	return ""
 }

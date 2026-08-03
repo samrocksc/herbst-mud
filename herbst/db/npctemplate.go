@@ -35,6 +35,10 @@ type NPCTemplate struct {
 	TradesWith []string `json:"trades_with,omitempty"`
 	// Greeting holds the value of the "greeting" field.
 	Greeting string `json:"greeting,omitempty"`
+	// GoldMin holds the value of the "gold_min" field.
+	GoldMin int `json:"gold_min,omitempty"`
+	// GoldMax holds the value of the "gold_max" field.
+	GoldMax int `json:"gold_max,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the NPCTemplateQuery when eager-loading is set.
 	Edges        NPCTemplateEdges `json:"edges"`
@@ -77,7 +81,7 @@ func (*NPCTemplate) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case npctemplate.FieldSkills, npctemplate.FieldTradesWith:
 			values[i] = new([]byte)
-		case npctemplate.FieldRaceID, npctemplate.FieldLevel:
+		case npctemplate.FieldRaceID, npctemplate.FieldLevel, npctemplate.FieldGoldMin, npctemplate.FieldGoldMax:
 			values[i] = new(sql.NullInt64)
 		case npctemplate.FieldID, npctemplate.FieldSlug, npctemplate.FieldName, npctemplate.FieldDescription, npctemplate.FieldDisposition, npctemplate.FieldGreeting:
 			values[i] = new(sql.NullString)
@@ -160,6 +164,18 @@ func (_m *NPCTemplate) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Greeting = value.String
 			}
+		case npctemplate.FieldGoldMin:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field gold_min", values[i])
+			} else if value.Valid {
+				_m.GoldMin = int(value.Int64)
+			}
+		case npctemplate.FieldGoldMax:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field gold_max", values[i])
+			} else if value.Valid {
+				_m.GoldMax = int(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -232,6 +248,12 @@ func (_m *NPCTemplate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("greeting=")
 	builder.WriteString(_m.Greeting)
+	builder.WriteString(", ")
+	builder.WriteString("gold_min=")
+	builder.WriteString(fmt.Sprintf("%v", _m.GoldMin))
+	builder.WriteString(", ")
+	builder.WriteString("gold_max=")
+	builder.WriteString(fmt.Sprintf("%v", _m.GoldMax))
 	builder.WriteByte(')')
 	return builder.String()
 }

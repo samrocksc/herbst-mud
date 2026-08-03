@@ -4,7 +4,8 @@ import { DataTable, type Column } from "../../components/DataTable";
 import { FormField, TextareaField } from "../../components/FormFields";
 import { FormError } from "../../components/fields/FormError";
 import { showToast } from "../../components/Toast";
-import { apiPost, apiPut, apiDelete } from "../../utils/apiFetch";
+import { apiPost, apiPut, apiDelete, buildWorldParams } from "../../utils/apiFetch";
+import { useWorldStore } from "../../contexts/WorldStoreContext";
 import { DeleteConfirmation } from "../../components/DeleteConfirmation";
 import type { FactionCategory } from "./-factionTypes";
 
@@ -124,6 +125,7 @@ function categoryColumns(setDeleteId: (id: number | null) => void, onEdit: (cat:
 }
 
 export function CreateCategoryForm({ onDone }: Readonly<{ onDone: () => void }>) {
+  const { currentWorld } = useWorldStore();
   const [name, setName] = useState("");
   const [desc, setDesc] = useState("");
   const [maxMemberships, setMaxMemberships] = useState(1);
@@ -136,12 +138,15 @@ export function CreateCategoryForm({ onDone }: Readonly<{ onDone: () => void }>)
     setSaving(true);
     setError("");
     try {
-      await apiPost("/api/faction-categories", {
+      const qs = buildWorldParams(currentWorld);
+      const suffix = qs ? `?${qs}` : "";
+      await apiPost(`/api/faction-categories${suffix}`, {
         name,
         display_name: name,
         description: desc,
         max_memberships: maxMemberships,
         auto_join: autoJoin,
+        world_id: currentWorld,
       });
       showToast("Category created", "success");
       onDone();

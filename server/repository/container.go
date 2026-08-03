@@ -40,6 +40,8 @@ type Container struct {
 	World                WorldRepo
 	CraftingRecipe       CraftingRecipeRepo
 	Trigger              TriggerRepo
+	ShopTemplate         ShopTemplateRepo
+	ShopItem             ShopItemRepo
 }
 
 // NewContainer creates all ent-backed repositories.
@@ -79,5 +81,7 @@ func NewContainer(client *db.Client) *Container {
 		World:                NewEntWorldRepo(client),
 		CraftingRecipe:       NewEntCraftingRecipeRepo(client),
 		Trigger:              NewEntTriggerRepo(client),
+		ShopTemplate:         NewShopTemplateRepo(client),
+		ShopItem:             NewShopItemRepo(client),
 	}
 }

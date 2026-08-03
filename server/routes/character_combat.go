@@ -39,10 +39,11 @@ func applyDamage(svc *service.Container) gin.HandlerFunc {
 			return
 		}
 		resp := gin.H{
-			"id":       result.ID,
-			"hp":       result.HP,
-			"maxHp":    result.MaxHP,
-			"defeated": result.Defeated,
+			"id":           result.ID,
+			"hp":           result.HP,
+			"maxHp":        result.MaxHP,
+			"defeated":     result.Defeated,
+			"gold_dropped": result.GoldDropped,
 		}
 		if result.Immortal {
 			resp["immortal"] = true

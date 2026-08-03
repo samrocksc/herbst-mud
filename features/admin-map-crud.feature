@@ -115,3 +115,61 @@ Feature: Admin Map Room CRUD
     Then the URL should still be at "/map"
     And the room detail panel should show "Fountain Plaza"
     And the URL should contain "?room="
+
+  @MAP-RENDER
+  Scenario: Map renders rooms and edges correctly for the active world
+    Given I am authenticated as an admin
+    And the active world is "Ooze Surfers"
+    When I navigate to "/map"
+    Then I should see room nodes for the current world
+    And I should see connecting edges between rooms with exits
+
+  @MAP-EDGE-ORTHOGONAL
+  Scenario: Cardinal exits place rooms on a straight horizontal or vertical line
+    Given I am authenticated as an admin
+    And the active world is "Ooze Surfers"
+    And a room "Source" exists at posx=0 posy=0 on floor 0
+    And a room "East Target" exists at posx=160 posy=0 on floor 0
+    And an exit from "Source" direction "east" points to "East Target"
+    When I GET "/api/rooms?world_id=2"
+    Then for the "east" exit from "Source" to "East Target" the y-coordinates must be equal
+    And the x-distance must be greater than 0
+
+  @MAP-EDGE-ORTHOGONAL
+  Scenario: Ordinal exits place rooms on a 45-degree diagonal (equal x and y magnitudes)
+    Given I am authenticated as an admin
+    And the active world is "Ooze Surfers"
+    And a room "Origin" exists at posx=0 posy=0 on floor 0
+    And a room "NE" exists at posx=106 posy=-106 on floor 0
+    And an exit from "Origin" direction "northeast" points to "NE"
+    When I GET "/api/rooms?world_id=2"
+    Then for the "northeast" exit from "Origin" to "NE" the x and y distances must be equal in magnitude
+    And both distances must be non-zero
+
+  @MAP-EDGE-ORTHOGONAL
+  Scenario: Reject (or snap) a room save whose coordinates don't match its exit direction label
+    Given I am authenticated as an admin
+    And the active world is "Ooze Surfers"
+    And a room "Mover" exists at posx=0 posy=0 on floor 0 with exit "east" pointing to a sibling room at posx=160 posy=0
+    When I PUT the room "Mover" with posx=0 posy=80 (offset on the wrong axis for an "east" exit)
+    Then the response status should be 400 or the server should snap posx/posy so the "east" direction still matches the target
+    And the stored "east" exit from "Mover" must still satisfy dy=0
+
+  @MAP-EDGE-CROSSING
+  Scenario: Edges between rooms on the same floor must not cross other rooms or each other
+    Given I am authenticated as an admin
+    And the active world is "Ooze Surfers"
+    And the floor 0 / floor +1 / floor -1 has N rooms
+    When I GET "/api/rooms?world_id=2"
+    Then for every pair of rooms (A,B) and (C,D) on the same floor where {A,B} != {C,D}, the segment A-B must not intersect the segment C-D
+    And no segment A-B may pass through the bounding box of a third room E (where E != A and E != B)
+
+  @MAP-EDGE-AUTOFIX
+  Scenario: Triggering the realign button snaps every cardinal exit into a horizontal or vertical line
+    Given I am authenticated as an admin
+    And the active world is "Ooze Surfers"
+    And floor 0 has a mix of cardinal and non-cardinal exits
+    When I click the "Realign rooms to grid" toolbar button (📐) on floor 0
+    Then every cardinal exit (north/south/east/west) on floor 0 must have a corresponding zero delta on the perpendicular axis
+    And the change must persist (verified by GET "/api/rooms?world_id=2")
+    And no "Cannot read properties of undefined" errors should appear in the console

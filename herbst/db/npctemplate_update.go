@@ -172,6 +172,60 @@ func (_u *NPCTemplateUpdate) SetNillableGreeting(v *string) *NPCTemplateUpdate {
 	return _u
 }
 
+// SetGoldMin sets the "gold_min" field.
+func (_u *NPCTemplateUpdate) SetGoldMin(v int) *NPCTemplateUpdate {
+	_u.mutation.ResetGoldMin()
+	_u.mutation.SetGoldMin(v)
+	return _u
+}
+
+// SetNillableGoldMin sets the "gold_min" field if the given value is not nil.
+func (_u *NPCTemplateUpdate) SetNillableGoldMin(v *int) *NPCTemplateUpdate {
+	if v != nil {
+		_u.SetGoldMin(*v)
+	}
+	return _u
+}
+
+// AddGoldMin adds value to the "gold_min" field.
+func (_u *NPCTemplateUpdate) AddGoldMin(v int) *NPCTemplateUpdate {
+	_u.mutation.AddGoldMin(v)
+	return _u
+}
+
+// ClearGoldMin clears the value of the "gold_min" field.
+func (_u *NPCTemplateUpdate) ClearGoldMin() *NPCTemplateUpdate {
+	_u.mutation.ClearGoldMin()
+	return _u
+}
+
+// SetGoldMax sets the "gold_max" field.
+func (_u *NPCTemplateUpdate) SetGoldMax(v int) *NPCTemplateUpdate {
+	_u.mutation.ResetGoldMax()
+	_u.mutation.SetGoldMax(v)
+	return _u
+}
+
+// SetNillableGoldMax sets the "gold_max" field if the given value is not nil.
+func (_u *NPCTemplateUpdate) SetNillableGoldMax(v *int) *NPCTemplateUpdate {
+	if v != nil {
+		_u.SetGoldMax(*v)
+	}
+	return _u
+}
+
+// AddGoldMax adds value to the "gold_max" field.
+func (_u *NPCTemplateUpdate) AddGoldMax(v int) *NPCTemplateUpdate {
+	_u.mutation.AddGoldMax(v)
+	return _u
+}
+
+// ClearGoldMax clears the value of the "gold_max" field.
+func (_u *NPCTemplateUpdate) ClearGoldMax() *NPCTemplateUpdate {
+	_u.mutation.ClearGoldMax()
+	return _u
+}
+
 // AddHookIDs adds the "hooks" edge to the EffectHook entity by IDs.
 func (_u *NPCTemplateUpdate) AddHookIDs(ids ...int) *NPCTemplateUpdate {
 	_u.mutation.AddHookIDs(ids...)
@@ -341,6 +395,24 @@ func (_u *NPCTemplateUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.Greeting(); ok {
 		_spec.SetField(npctemplate.FieldGreeting, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.GoldMin(); ok {
+		_spec.SetField(npctemplate.FieldGoldMin, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedGoldMin(); ok {
+		_spec.AddField(npctemplate.FieldGoldMin, field.TypeInt, value)
+	}
+	if _u.mutation.GoldMinCleared() {
+		_spec.ClearField(npctemplate.FieldGoldMin, field.TypeInt)
+	}
+	if value, ok := _u.mutation.GoldMax(); ok {
+		_spec.SetField(npctemplate.FieldGoldMax, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedGoldMax(); ok {
+		_spec.AddField(npctemplate.FieldGoldMax, field.TypeInt, value)
+	}
+	if _u.mutation.GoldMaxCleared() {
+		_spec.ClearField(npctemplate.FieldGoldMax, field.TypeInt)
 	}
 	if _u.mutation.HooksCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -594,6 +666,60 @@ func (_u *NPCTemplateUpdateOne) SetNillableGreeting(v *string) *NPCTemplateUpdat
 	return _u
 }
 
+// SetGoldMin sets the "gold_min" field.
+func (_u *NPCTemplateUpdateOne) SetGoldMin(v int) *NPCTemplateUpdateOne {
+	_u.mutation.ResetGoldMin()
+	_u.mutation.SetGoldMin(v)
+	return _u
+}
+
+// SetNillableGoldMin sets the "gold_min" field if the given value is not nil.
+func (_u *NPCTemplateUpdateOne) SetNillableGoldMin(v *int) *NPCTemplateUpdateOne {
+	if v != nil {
+		_u.SetGoldMin(*v)
+	}
+	return _u
+}
+
+// AddGoldMin adds value to the "gold_min" field.
+func (_u *NPCTemplateUpdateOne) AddGoldMin(v int) *NPCTemplateUpdateOne {
+	_u.mutation.AddGoldMin(v)
+	return _u
+}
+
+// ClearGoldMin clears the value of the "gold_min" field.
+func (_u *NPCTemplateUpdateOne) ClearGoldMin() *NPCTemplateUpdateOne {
+	_u.mutation.ClearGoldMin()
+	return _u
+}
+
+// SetGoldMax sets the "gold_max" field.
+func (_u *NPCTemplateUpdateOne) SetGoldMax(v int) *NPCTemplateUpdateOne {
+	_u.mutation.ResetGoldMax()
+	_u.mutation.SetGoldMax(v)
+	return _u
+}
+
+// SetNillableGoldMax sets the "gold_max" field if the given value is not nil.
+func (_u *NPCTemplateUpdateOne) SetNillableGoldMax(v *int) *NPCTemplateUpdateOne {
+	if v != nil {
+		_u.SetGoldMax(*v)
+	}
+	return _u
+}
+
+// AddGoldMax adds value to the "gold_max" field.
+func (_u *NPCTemplateUpdateOne) AddGoldMax(v int) *NPCTemplateUpdateOne {
+	_u.mutation.AddGoldMax(v)
+	return _u
+}
+
+// ClearGoldMax clears the value of the "gold_max" field.
+func (_u *NPCTemplateUpdateOne) ClearGoldMax() *NPCTemplateUpdateOne {
+	_u.mutation.ClearGoldMax()
+	return _u
+}
+
 // AddHookIDs adds the "hooks" edge to the EffectHook entity by IDs.
 func (_u *NPCTemplateUpdateOne) AddHookIDs(ids ...int) *NPCTemplateUpdateOne {
 	_u.mutation.AddHookIDs(ids...)
@@ -793,6 +919,24 @@ func (_u *NPCTemplateUpdateOne) sqlSave(ctx context.Context) (_node *NPCTemplate
 	}
 	if value, ok := _u.mutation.Greeting(); ok {
 		_spec.SetField(npctemplate.FieldGreeting, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.GoldMin(); ok {
+		_spec.SetField(npctemplate.FieldGoldMin, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedGoldMin(); ok {
+		_spec.AddField(npctemplate.FieldGoldMin, field.TypeInt, value)
+	}
+	if _u.mutation.GoldMinCleared() {
+		_spec.ClearField(npctemplate.FieldGoldMin, field.TypeInt)
+	}
+	if value, ok := _u.mutation.GoldMax(); ok {
+		_spec.SetField(npctemplate.FieldGoldMax, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedGoldMax(); ok {
+		_spec.AddField(npctemplate.FieldGoldMax, field.TypeInt, value)
+	}
+	if _u.mutation.GoldMaxCleared() {
+		_spec.ClearField(npctemplate.FieldGoldMax, field.TypeInt)
 	}
 	if _u.mutation.HooksCleared() {
 		edge := &sqlgraph.EdgeSpec{

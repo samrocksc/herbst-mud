@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // Faction holds the schema definition for the Faction entity.
@@ -30,8 +31,7 @@ type ClassSpecialty struct {
 
 func (Faction) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").
-			Unique(),
+		field.String("name"),
 		field.String("world_id").
 			Default("1").
 			Comment("World this faction belongs to (for multi-world support)"),
@@ -59,5 +59,12 @@ func (Faction) Edges() []ent.Edge {
 		edge.To("required_tags", FactionRequiredTag.Type),
 		edge.To("character_factions", CharacterFaction.Type),
 		edge.To("abilities", Ability.Type),
+	}
+}
+
+// Indexes of the Faction.
+func (Faction) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("name", "world_id").Unique(),
 	}
 }

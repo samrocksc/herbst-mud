@@ -1,12 +1,12 @@
 package routes
 
 import (
-	"herbst-server/dblog"
-	"log/slog"
-	"github.com/gin-gonic/gin"
 	"herbst-server/db"
 	"herbst-server/db/dialognode"
+	"herbst-server/dblog"
 	"herbst-server/middleware"
+	"log/slog"
+	"github.com/gin-gonic/gin"
 	"herbst-server/repository"
 )
 
@@ -24,7 +24,7 @@ func RegisterDialogNodeRoutes(r *gin.Engine, repos *repository.Container, client
 		nodes.DELETE("/:id", deleteDialogNode(repos))
 	}
 	// Public: game client fetches dialog tree for a specific NPC template.
-	r.GET("/api/npc-templates/:id/dialog-nodes", middleware.AuthMiddleware(nil), middleware.AdminMiddleware(), middleware.WorldAccessMiddleware(), getDialogNodesForTemplate(repos))
+	r.GET("/api/npc-templates/:id/dialog-nodes", middleware.AuthMiddleware(nil), middleware.AdminMiddleware(), middleware.WorldAccessMiddleware(), getDialogNodesForTemplate(repos, client))
 }
 
 // TODO: Use repos.DialogNode.Get once repo supports WithNpcTemplate edge loading
@@ -48,7 +48,7 @@ func getDialogNode(repos *repository.Container, client *db.Client) gin.HandlerFu
 }
 
 // getDialogNodesForTemplate returns all dialog nodes for an NPC template (public).
-func getDialogNodesForTemplate(repos *repository.Container) gin.HandlerFunc {
+func getDialogNodesForTemplate(repos *repository.Container, client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		templateID := c.Param("id")
 		if templateID == "" {
@@ -61,7 +61,13 @@ func getDialogNodesForTemplate(repos *repository.Container) gin.HandlerFunc {
 			c.JSON(404, gin.H{"error": "npc template not found"})
 			return
 		}
-		nodes, err := repos.DialogNode.ListByTemplate(c.Request.Context(), templateID)
+		worldID := c.Query("world_id")
+		var nodes []*db.DialogNode
+		if worldID != "" && worldID != "default" {
+			nodes, err = repos.DialogNode.ListByTemplateAndWorld(c.Request.Context(), templateID, worldID)
+		} else {
+			nodes, err = repos.DialogNode.ListByTemplate(c.Request.Context(), templateID)
+		}
 		if err != nil {
 			dblog.Error("get dialog nodes for template failed", err, slog.String("service", "dialog_nodes"))
 			c.JSON(500, gin.H{"error": err.Error()})

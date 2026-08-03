@@ -5,6 +5,28 @@ body {
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+html {
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Game screen root: use dynamic viewport height (dvh) to handle mobile address bar.
+   Fallback to 100vh for browsers that don't support dvh.
+   With viewport-fit=cover in the meta tag, dvh accounts for safe area insets. */
+.game-screen-root {
+  height: 100vh; /* fallback */
+  height: 100dvh; /* dynamic viewport height — adjusts for mobile address bar */
 }
 
 /* Combat stat bar fills */

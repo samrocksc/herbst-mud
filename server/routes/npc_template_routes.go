@@ -46,6 +46,8 @@ type npcTemplateView struct {
 	Greeting        string         `json:"greeting"`
 	RespawnRooms    []string       `json:"respawn_rooms"`
 	RespawnCooldown int            `json:"respawn_cooldown"`
+	GoldMin          int            `json:"gold_min"`
+	GoldMax          int            `json:"gold_max"`
 	WorldID         string         `json:"world_id"`
 }
 
@@ -88,6 +90,8 @@ func listNPCTemplates(repos *repository.Container) gin.HandlerFunc {
 				Greeting:        t.Greeting,
 				RespawnRooms:    t.RespawnRooms,
 				RespawnCooldown: t.RespawnCooldown,
+				GoldMin:          t.GoldMin,
+				GoldMax:          t.GoldMax,
 				WorldID:         t.WorldID,
 			}
 		}
@@ -124,6 +128,8 @@ func getNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			Greeting:        tmpl.Greeting,
 			RespawnRooms:    tmpl.RespawnRooms,
 			RespawnCooldown: tmpl.RespawnCooldown,
+			GoldMin:          tmpl.GoldMin,
+			GoldMax:          tmpl.GoldMax,
 			WorldID:         tmpl.WorldID,
 		})
 	}
@@ -145,6 +151,8 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			Greeting        string         `json:"greeting"`
 			RespawnRooms    []string       `json:"respawn_rooms"`
 			RespawnCooldown int            `json:"respawn_cooldown"`
+			GoldMin          int            `json:"gold_min"`
+			GoldMax          int            `json:"gold_max"`
 			WorldID         string         `json:"world_id"`
 		}
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -164,7 +172,7 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 		disposition := "neutral"
 		if req.Disposition != "" {
 			switch req.Disposition {
-			case "hostile", "friendly", "neutral":
+			case "hostile", "friendly", "neutral", "shopkeeper":
 				disposition = req.Disposition
 			default:
 				slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid disposition"), slog.String("disposition", req.Disposition))
@@ -188,6 +196,8 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			Greeting:        req.Greeting,
 			RespawnRooms:    req.RespawnRooms,
 			RespawnCooldown: &cooldown,
+			GoldMin:          req.GoldMin,
+			GoldMax:          req.GoldMax,
 			WorldID:         req.WorldID,
 		})
 		if err != nil {
@@ -211,6 +221,8 @@ func createNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			Greeting:        created.Greeting,
 			RespawnRooms:    created.RespawnRooms,
 			RespawnCooldown: created.RespawnCooldown,
+			GoldMin:          created.GoldMin,
+			GoldMax:          created.GoldMax,
 			WorldID:         created.WorldID,
 		})
 	}
@@ -231,6 +243,8 @@ type updateNPCTemplateRequest struct {
 	Greeting        *string         `json:"greeting"`
 	RespawnRooms    *[]string       `json:"respawn_rooms"`
 	RespawnCooldown *int            `json:"respawn_cooldown"`
+	GoldMin          *int            `json:"gold_min"`
+	GoldMax          *int            `json:"gold_max"`
 	WorldID         *string         `json:"world_id"`
 }
 
@@ -262,10 +276,12 @@ func updateNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			Greeting:        req.Greeting,
 			RespawnRooms:    req.RespawnRooms,
 			RespawnCooldown: req.RespawnCooldown,
-		}
+			GoldMin:          req.GoldMin,
+			GoldMax:          req.GoldMax,
+			}
 		if req.Disposition != nil {
 			switch *req.Disposition {
-			case "hostile", "friendly", "neutral":
+			case "hostile", "friendly", "neutral", "shopkeeper":
 				updates.Disposition = req.Disposition
 			default:
 				slog.Warn("bad request", slog.String("service", "npcs"), slog.String("reason", "invalid disposition"), slog.String("disposition", *req.Disposition))
@@ -296,7 +312,9 @@ func updateNPCTemplate(repos *repository.Container) gin.HandlerFunc {
 			Greeting:        updated.Greeting,
 			RespawnRooms:    updated.RespawnRooms,
 			RespawnCooldown: updated.RespawnCooldown,
-		})
+			GoldMin:          updated.GoldMin,
+			GoldMax:          updated.GoldMax,
+			})
 	}
 }
 

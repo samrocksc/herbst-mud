@@ -328,10 +328,10 @@ func importNPCTemplates(ctx context.Context, client *db.Client, templates []map[
 				builder = builder.SetRaceID(newRaceID)
 			}
 		}
-		// Disposition is an enum (hostile/friendly/neutral). Fall back to neutral for unknown values.
+		// Disposition is an enum (hostile/friendly/neutral/shopkeeper). Fall back to neutral for unknown values.
 		if v := strVal(t["disposition"]); v != "" {
 			switch v {
-			case "hostile", "friendly", "neutral":
+			case "hostile", "friendly", "neutral", "shopkeeper":
 				builder = builder.SetDisposition(npctemplate.Disposition(v))
 			default:
 				builder = builder.SetDisposition(npctemplate.DispositionNeutral)

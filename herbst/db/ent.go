@@ -21,6 +21,7 @@ import (
 	"herbst/db/race"
 	"herbst/db/room"
 	"herbst/db/user"
+	"herbst/db/zone"
 	"reflect"
 	"sync"
 
@@ -102,6 +103,7 @@ func checkColumn(t, c string) error {
 			race.Table:              race.ValidColumn,
 			room.Table:              room.ValidColumn,
 			user.Table:              user.ValidColumn,
+			zone.Table:              zone.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

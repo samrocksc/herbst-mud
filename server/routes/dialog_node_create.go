@@ -46,6 +46,10 @@ func createDialogNode(repos *repository.Container, client *db.Client) gin.Handle
 			onEnterEffects = *input.OnEnterEffects
 		}
 
+		worldID := c.Query("world_id")
+		if worldID == "" {
+			worldID = "1"
+		}
 		dn, err := repos.DialogNode.Create(c.Request.Context(), repository.CreateDialogNodeInput{
 			ID:             *input.ID,
 			NPCTemplateID:  *input.NpcTemplateID,
@@ -54,6 +58,7 @@ func createDialogNode(repos *repository.Container, client *db.Client) gin.Handle
 			IsEntry:        input.IsEntry != nil && *input.IsEntry,
 			EntryCondition: "",
 			OnEnterEffects: onEnterEffects,
+			WorldID:        worldID,
 		})
 		if err != nil {
 			dblog.Error("create dialog node failed", err, slog.String("service", "dialog_nodes"), slog.String("dialog_node_id", *input.ID))

@@ -31,6 +31,17 @@ func (r *shopTemplateRepo) Get(ctx context.Context, id int) (*db.ShopTemplate, e
 	return template, nil
 }
 
+// GetByNPCTemplateID returns the ShopTemplate linked to an NPC template.
+func (r *shopTemplateRepo) GetByNPCTemplateID(ctx context.Context, npcTemplateID string) (*db.ShopTemplate, error) {
+	template, err := r.client.ShopTemplate.Query().
+		Where(shoptemplate.NpcTemplateIDEQ(npcTemplateID)).
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return template, nil
+}
+
 // List returns all ShopTemplates for a world.
 func (r *shopTemplateRepo) List(ctx context.Context, worldID string) ([]*db.ShopTemplate, error) {
 	templates, err := r.client.ShopTemplate.Query().

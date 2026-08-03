@@ -61,6 +61,12 @@ type NPCTemplate struct {
 	LastMovedAt *time.Time `json:"last_moved_at,omitempty"`
 	// If true, emit a chat/notification event when this NPC enters a room.
 	NotifyOnEnter bool `json:"notify_on_enter,omitempty"`
+	// If true, this NPC is a boss. Boss kills emit a boss_killed event for biography tracking.
+	IsBoss bool `json:"is_boss,omitempty"`
+	// Minimum gold dropped on death (0 = no gold)
+	GoldMin int `json:"gold_min,omitempty"`
+	// Maximum gold dropped on death (0 = no gold)
+	GoldMax int `json:"gold_max,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the NPCTemplateQuery when eager-loading is set.
 	Edges        NPCTemplateEdges `json:"edges"`
@@ -138,11 +144,11 @@ func (*NPCTemplate) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case npctemplate.FieldSkills, npctemplate.FieldTradesWith, npctemplate.FieldRespawnRooms, npctemplate.FieldRoamZoneIds:
 			values[i] = new([]byte)
-		case npctemplate.FieldNotifyOnEnter:
+		case npctemplate.FieldNotifyOnEnter, npctemplate.FieldIsBoss:
 			values[i] = new(sql.NullBool)
 		case npctemplate.FieldXpMultiplier:
 			values[i] = new(sql.NullFloat64)
-		case npctemplate.FieldRaceID, npctemplate.FieldLevel, npctemplate.FieldXpValue, npctemplate.FieldRespawnCooldown, npctemplate.FieldRoamIntervalSeconds, npctemplate.FieldRoamPauseMinSeconds, npctemplate.FieldRoamPauseMaxSeconds:
+		case npctemplate.FieldRaceID, npctemplate.FieldLevel, npctemplate.FieldXpValue, npctemplate.FieldRespawnCooldown, npctemplate.FieldRoamIntervalSeconds, npctemplate.FieldRoamPauseMinSeconds, npctemplate.FieldRoamPauseMaxSeconds, npctemplate.FieldGoldMin, npctemplate.FieldGoldMax:
 			values[i] = new(sql.NullInt64)
 		case npctemplate.FieldID, npctemplate.FieldSlug, npctemplate.FieldWorldID, npctemplate.FieldName, npctemplate.FieldDescription, npctemplate.FieldDisposition, npctemplate.FieldGreeting, npctemplate.FieldRoamPattern:
 			values[i] = new(sql.NullString)
@@ -304,6 +310,24 @@ func (_m *NPCTemplate) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.NotifyOnEnter = value.Bool
 			}
+		case npctemplate.FieldIsBoss:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field is_boss", values[i])
+			} else if value.Valid {
+				_m.IsBoss = value.Bool
+			}
+		case npctemplate.FieldGoldMin:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field gold_min", values[i])
+			} else if value.Valid {
+				_m.GoldMin = int(value.Int64)
+			}
+		case npctemplate.FieldGoldMax:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field gold_max", values[i])
+			} else if value.Valid {
+				_m.GoldMax = int(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -429,6 +453,15 @@ func (_m *NPCTemplate) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("notify_on_enter=")
 	builder.WriteString(fmt.Sprintf("%v", _m.NotifyOnEnter))
+	builder.WriteString(", ")
+	builder.WriteString("is_boss=")
+	builder.WriteString(fmt.Sprintf("%v", _m.IsBoss))
+	builder.WriteString(", ")
+	builder.WriteString("gold_min=")
+	builder.WriteString(fmt.Sprintf("%v", _m.GoldMin))
+	builder.WriteString(", ")
+	builder.WriteString("gold_max=")
+	builder.WriteString(fmt.Sprintf("%v", _m.GoldMax))
 	builder.WriteByte(')')
 	return builder.String()
 }

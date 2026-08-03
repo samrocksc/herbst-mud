@@ -212,6 +212,9 @@ func getFactionMembers(repos *repository.Container) gin.HandlerFunc {
 func listFactionCategories(client *db.Client) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		query := client.FactionCategory.Query()
+		if worldID := middleware.GetWorldID(c); worldID != "" {
+			query = query.Where(factioncategory.WorldID(worldID))
+		}
 		if search := c.Query("search"); search != "" {
 			query = query.Where(factioncategory.NameContains(search))
 		}
@@ -247,10 +250,15 @@ func createFactionCategory(client *db.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+		worldID := middleware.GetWorldID(c)
+		if worldID == "" {
+			worldID = "1"
+		}
 		created, err := client.FactionCategory.Create().
 			SetName(req.Name).
 			SetDisplayName(req.DisplayName).
 			SetDescription(req.Description).
+			SetWorldID(worldID).
 			SetMaxMemberships(req.MaxMemberships).
 			SetAutoJoin(req.AutoJoin).
 			SetInitialConfig(req.InitialConfig).

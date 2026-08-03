@@ -23,6 +23,18 @@ function headers(): HeadersInit {
   return h;
 }
 
+export type AbilityEffect = {
+  readonly effectType: string;
+  readonly target: string;
+  readonly value: number;
+  readonly effectMessage?: string;
+  readonly damageSubtype?: string;
+  readonly duration?: number;
+  readonly scalingStat?: string;
+  readonly scalingRatio?: number;
+  readonly sortOrder?: number;
+};
+
 export type Ability = {
   readonly id: number;
   readonly name: string;
@@ -33,6 +45,14 @@ export type Ability = {
   readonly mana_cost: number;
   readonly stamina_cost: number;
   readonly hp_cost: number;
+  readonly caster_message?: string;
+  readonly recipient_message?: string;
+  readonly effects?: readonly AbilityEffect[];
+  // Some endpoints (character ability slots) return camelCase variants.
+  readonly casterMessage?: string;
+  readonly recipientMessage?: string;
+  readonly manaCost?: number;
+  readonly staminaCost?: number;
 };
 
 export type User = {
@@ -110,6 +130,7 @@ export type Class = {
   readonly name: string;
   readonly display_name: string;
   readonly description: string;
+  readonly source?: string;
 };
 
 export async function login(email: string, password: string): Promise<{ readonly token: string; readonly user: User }> {
@@ -178,8 +199,9 @@ export async function createCharacter(input: {
   return res.json();
 }
 
-export async function listRaces(): Promise<readonly Race[]> {
-  const res = await fetch(`${API_BASE}/races`, { headers: headers() });
+export async function listRaces(worldId?: string): Promise<readonly Race[]> {
+  const qs = worldId ? `?world_id=${encodeURIComponent(worldId)}` : "";
+  const res = await fetch(`${API_BASE}/races${qs}`, { headers: headers() });
   if (!res.ok) {
     const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to load races" }));
     throw new Error(err.error || "Failed to load races");
@@ -187,8 +209,9 @@ export async function listRaces(): Promise<readonly Race[]> {
   return res.json();
 }
 
-export async function listGenders(): Promise<readonly Gender[]> {
-  const res = await fetch(`${API_BASE}/genders`, { headers: headers() });
+export async function listGenders(worldId?: string): Promise<readonly Gender[]> {
+  const qs = worldId ? `?world_id=${encodeURIComponent(worldId)}` : "";
+  const res = await fetch(`${API_BASE}/genders${qs}`, { headers: headers() });
   if (!res.ok) {
     const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to load genders" }));
     throw new Error(err.error || "Failed to load genders");
@@ -257,7 +280,11 @@ export async function getCombatStatus(charID: number): Promise<{ hp: number; max
   return res.json();
 }
 
-export async function applyDamage(charID: number, damage: number, attackerID?: number): Promise<void> {
+export async function applyDamage(
+  charID: number,
+  damage: number,
+  attackerID?: number,
+): Promise<{ id: number; hp: number; maxHp: number; defeated: boolean; gold_dropped?: number; is_npc: boolean; npc_template_id: string; immortal?: boolean; message?: string; messages?: readonly string[] }> {
   const body: Record<string, unknown> = { damage };
   if (attackerID != null && attackerID > 0) body.attacker_id = attackerID;
   const res = await fetch(`${API_BASE}/characters/${charID}/damage`, {
@@ -269,6 +296,7 @@ export async function applyDamage(charID: number, damage: number, attackerID?: n
     const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to apply damage" }));
     throw new Error(err.error || "Failed to apply damage");
   }
+  return res.json();
 }
 
 export async function healCharacter(charID: number, amount: number): Promise<void> {
@@ -283,7 +311,7 @@ export async function healCharacter(charID: number, amount: number): Promise<voi
   }
 }
 
-export async function adjustMana(charID: number, amount: number): Promise<void> {
+export async function adjustMana(charID: number, amount: number): Promise<{ id: number; mana: number; maxMana: number }> {
   const res = await fetch(`${API_BASE}/characters/${charID}/mana`, {
     method: "POST",
     headers: headers(),
@@ -293,6 +321,7 @@ export async function adjustMana(charID: number, amount: number): Promise<void> 
     const err = await res.json().catch((): { readonly error: string } => ({ error: "Failed to adjust mana" }));
     throw new Error(err.error || "Failed to adjust mana");
   }
+  return res.json();
 }
 
 export async function getCharacterEquipment(charID: number): Promise<readonly EquipmentItem[]> {

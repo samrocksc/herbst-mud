@@ -107,6 +107,34 @@ func (_c *NPCTemplateCreate) SetGreeting(v string) *NPCTemplateCreate {
 	return _c
 }
 
+// SetGoldMin sets the "gold_min" field.
+func (_c *NPCTemplateCreate) SetGoldMin(v int) *NPCTemplateCreate {
+	_c.mutation.SetGoldMin(v)
+	return _c
+}
+
+// SetNillableGoldMin sets the "gold_min" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableGoldMin(v *int) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetGoldMin(*v)
+	}
+	return _c
+}
+
+// SetGoldMax sets the "gold_max" field.
+func (_c *NPCTemplateCreate) SetGoldMax(v int) *NPCTemplateCreate {
+	_c.mutation.SetGoldMax(v)
+	return _c
+}
+
+// SetNillableGoldMax sets the "gold_max" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableGoldMax(v *int) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetGoldMax(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *NPCTemplateCreate) SetID(v string) *NPCTemplateCreate {
 	_c.mutation.SetID(v)
@@ -185,6 +213,14 @@ func (_c *NPCTemplateCreate) defaults() {
 	if _, ok := _c.mutation.Level(); !ok {
 		v := npctemplate.DefaultLevel
 		_c.mutation.SetLevel(v)
+	}
+	if _, ok := _c.mutation.GoldMin(); !ok {
+		v := npctemplate.DefaultGoldMin
+		_c.mutation.SetGoldMin(v)
+	}
+	if _, ok := _c.mutation.GoldMax(); !ok {
+		v := npctemplate.DefaultGoldMax
+		_c.mutation.SetGoldMax(v)
 	}
 }
 
@@ -286,6 +322,14 @@ func (_c *NPCTemplateCreate) createSpec() (*NPCTemplate, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Greeting(); ok {
 		_spec.SetField(npctemplate.FieldGreeting, field.TypeString, value)
 		_node.Greeting = value
+	}
+	if value, ok := _c.mutation.GoldMin(); ok {
+		_spec.SetField(npctemplate.FieldGoldMin, field.TypeInt, value)
+		_node.GoldMin = value
+	}
+	if value, ok := _c.mutation.GoldMax(); ok {
+		_spec.SetField(npctemplate.FieldGoldMax, field.TypeInt, value)
+		_node.GoldMax = value
 	}
 	if nodes := _c.mutation.HooksIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

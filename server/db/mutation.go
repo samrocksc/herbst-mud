@@ -31567,6 +31567,11 @@ type NPCTemplateMutation struct {
 	addroam_pause_max_seconds *int
 	last_moved_at             *time.Time
 	notify_on_enter           *bool
+	is_boss                   *bool
+	gold_min                  *int
+	addgold_min               *int
+	gold_max                  *int
+	addgold_max               *int
 	clearedFields             map[string]struct{}
 	npc_abilities             map[int]struct{}
 	removednpc_abilities      map[int]struct{}
@@ -32768,6 +32773,195 @@ func (m *NPCTemplateMutation) ResetNotifyOnEnter() {
 	delete(m.clearedFields, npctemplate.FieldNotifyOnEnter)
 }
 
+// SetIsBoss sets the "is_boss" field.
+func (m *NPCTemplateMutation) SetIsBoss(b bool) {
+	m.is_boss = &b
+}
+
+// IsBoss returns the value of the "is_boss" field in the mutation.
+func (m *NPCTemplateMutation) IsBoss() (r bool, exists bool) {
+	v := m.is_boss
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsBoss returns the old "is_boss" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldIsBoss(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsBoss is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsBoss requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsBoss: %w", err)
+	}
+	return oldValue.IsBoss, nil
+}
+
+// ClearIsBoss clears the value of the "is_boss" field.
+func (m *NPCTemplateMutation) ClearIsBoss() {
+	m.is_boss = nil
+	m.clearedFields[npctemplate.FieldIsBoss] = struct{}{}
+}
+
+// IsBossCleared returns if the "is_boss" field was cleared in this mutation.
+func (m *NPCTemplateMutation) IsBossCleared() bool {
+	_, ok := m.clearedFields[npctemplate.FieldIsBoss]
+	return ok
+}
+
+// ResetIsBoss resets all changes to the "is_boss" field.
+func (m *NPCTemplateMutation) ResetIsBoss() {
+	m.is_boss = nil
+	delete(m.clearedFields, npctemplate.FieldIsBoss)
+}
+
+// SetGoldMin sets the "gold_min" field.
+func (m *NPCTemplateMutation) SetGoldMin(i int) {
+	m.gold_min = &i
+	m.addgold_min = nil
+}
+
+// GoldMin returns the value of the "gold_min" field in the mutation.
+func (m *NPCTemplateMutation) GoldMin() (r int, exists bool) {
+	v := m.gold_min
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGoldMin returns the old "gold_min" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldGoldMin(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGoldMin is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGoldMin requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGoldMin: %w", err)
+	}
+	return oldValue.GoldMin, nil
+}
+
+// AddGoldMin adds i to the "gold_min" field.
+func (m *NPCTemplateMutation) AddGoldMin(i int) {
+	if m.addgold_min != nil {
+		*m.addgold_min += i
+	} else {
+		m.addgold_min = &i
+	}
+}
+
+// AddedGoldMin returns the value that was added to the "gold_min" field in this mutation.
+func (m *NPCTemplateMutation) AddedGoldMin() (r int, exists bool) {
+	v := m.addgold_min
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearGoldMin clears the value of the "gold_min" field.
+func (m *NPCTemplateMutation) ClearGoldMin() {
+	m.gold_min = nil
+	m.addgold_min = nil
+	m.clearedFields[npctemplate.FieldGoldMin] = struct{}{}
+}
+
+// GoldMinCleared returns if the "gold_min" field was cleared in this mutation.
+func (m *NPCTemplateMutation) GoldMinCleared() bool {
+	_, ok := m.clearedFields[npctemplate.FieldGoldMin]
+	return ok
+}
+
+// ResetGoldMin resets all changes to the "gold_min" field.
+func (m *NPCTemplateMutation) ResetGoldMin() {
+	m.gold_min = nil
+	m.addgold_min = nil
+	delete(m.clearedFields, npctemplate.FieldGoldMin)
+}
+
+// SetGoldMax sets the "gold_max" field.
+func (m *NPCTemplateMutation) SetGoldMax(i int) {
+	m.gold_max = &i
+	m.addgold_max = nil
+}
+
+// GoldMax returns the value of the "gold_max" field in the mutation.
+func (m *NPCTemplateMutation) GoldMax() (r int, exists bool) {
+	v := m.gold_max
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGoldMax returns the old "gold_max" field's value of the NPCTemplate entity.
+// If the NPCTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NPCTemplateMutation) OldGoldMax(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGoldMax is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGoldMax requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGoldMax: %w", err)
+	}
+	return oldValue.GoldMax, nil
+}
+
+// AddGoldMax adds i to the "gold_max" field.
+func (m *NPCTemplateMutation) AddGoldMax(i int) {
+	if m.addgold_max != nil {
+		*m.addgold_max += i
+	} else {
+		m.addgold_max = &i
+	}
+}
+
+// AddedGoldMax returns the value that was added to the "gold_max" field in this mutation.
+func (m *NPCTemplateMutation) AddedGoldMax() (r int, exists bool) {
+	v := m.addgold_max
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearGoldMax clears the value of the "gold_max" field.
+func (m *NPCTemplateMutation) ClearGoldMax() {
+	m.gold_max = nil
+	m.addgold_max = nil
+	m.clearedFields[npctemplate.FieldGoldMax] = struct{}{}
+}
+
+// GoldMaxCleared returns if the "gold_max" field was cleared in this mutation.
+func (m *NPCTemplateMutation) GoldMaxCleared() bool {
+	_, ok := m.clearedFields[npctemplate.FieldGoldMax]
+	return ok
+}
+
+// ResetGoldMax resets all changes to the "gold_max" field.
+func (m *NPCTemplateMutation) ResetGoldMax() {
+	m.gold_max = nil
+	m.addgold_max = nil
+	delete(m.clearedFields, npctemplate.FieldGoldMax)
+}
+
 // AddNpcAbilityIDs adds the "npc_abilities" edge to the NPCAbility entity by ids.
 func (m *NPCTemplateMutation) AddNpcAbilityIDs(ids ...int) {
 	if m.npc_abilities == nil {
@@ -33045,7 +33239,7 @@ func (m *NPCTemplateMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NPCTemplateMutation) Fields() []string {
-	fields := make([]string, 0, 21)
+	fields := make([]string, 0, 24)
 	if m.slug != nil {
 		fields = append(fields, npctemplate.FieldSlug)
 	}
@@ -33109,6 +33303,15 @@ func (m *NPCTemplateMutation) Fields() []string {
 	if m.notify_on_enter != nil {
 		fields = append(fields, npctemplate.FieldNotifyOnEnter)
 	}
+	if m.is_boss != nil {
+		fields = append(fields, npctemplate.FieldIsBoss)
+	}
+	if m.gold_min != nil {
+		fields = append(fields, npctemplate.FieldGoldMin)
+	}
+	if m.gold_max != nil {
+		fields = append(fields, npctemplate.FieldGoldMax)
+	}
 	return fields
 }
 
@@ -33159,6 +33362,12 @@ func (m *NPCTemplateMutation) Field(name string) (ent.Value, bool) {
 		return m.LastMovedAt()
 	case npctemplate.FieldNotifyOnEnter:
 		return m.NotifyOnEnter()
+	case npctemplate.FieldIsBoss:
+		return m.IsBoss()
+	case npctemplate.FieldGoldMin:
+		return m.GoldMin()
+	case npctemplate.FieldGoldMax:
+		return m.GoldMax()
 	}
 	return nil, false
 }
@@ -33210,6 +33419,12 @@ func (m *NPCTemplateMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldLastMovedAt(ctx)
 	case npctemplate.FieldNotifyOnEnter:
 		return m.OldNotifyOnEnter(ctx)
+	case npctemplate.FieldIsBoss:
+		return m.OldIsBoss(ctx)
+	case npctemplate.FieldGoldMin:
+		return m.OldGoldMin(ctx)
+	case npctemplate.FieldGoldMax:
+		return m.OldGoldMax(ctx)
 	}
 	return nil, fmt.Errorf("unknown NPCTemplate field %s", name)
 }
@@ -33366,6 +33581,27 @@ func (m *NPCTemplateMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetNotifyOnEnter(v)
 		return nil
+	case npctemplate.FieldIsBoss:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsBoss(v)
+		return nil
+	case npctemplate.FieldGoldMin:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGoldMin(v)
+		return nil
+	case npctemplate.FieldGoldMax:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGoldMax(v)
+		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate field %s", name)
 }
@@ -33395,6 +33631,12 @@ func (m *NPCTemplateMutation) AddedFields() []string {
 	if m.addroam_pause_max_seconds != nil {
 		fields = append(fields, npctemplate.FieldRoamPauseMaxSeconds)
 	}
+	if m.addgold_min != nil {
+		fields = append(fields, npctemplate.FieldGoldMin)
+	}
+	if m.addgold_max != nil {
+		fields = append(fields, npctemplate.FieldGoldMax)
+	}
 	return fields
 }
 
@@ -33417,6 +33659,10 @@ func (m *NPCTemplateMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedRoamPauseMinSeconds()
 	case npctemplate.FieldRoamPauseMaxSeconds:
 		return m.AddedRoamPauseMaxSeconds()
+	case npctemplate.FieldGoldMin:
+		return m.AddedGoldMin()
+	case npctemplate.FieldGoldMax:
+		return m.AddedGoldMax()
 	}
 	return nil, false
 }
@@ -33475,6 +33721,20 @@ func (m *NPCTemplateMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddRoamPauseMaxSeconds(v)
 		return nil
+	case npctemplate.FieldGoldMin:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGoldMin(v)
+		return nil
+	case npctemplate.FieldGoldMax:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddGoldMax(v)
+		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate numeric field %s", name)
 }
@@ -33512,6 +33772,15 @@ func (m *NPCTemplateMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(npctemplate.FieldNotifyOnEnter) {
 		fields = append(fields, npctemplate.FieldNotifyOnEnter)
+	}
+	if m.FieldCleared(npctemplate.FieldIsBoss) {
+		fields = append(fields, npctemplate.FieldIsBoss)
+	}
+	if m.FieldCleared(npctemplate.FieldGoldMin) {
+		fields = append(fields, npctemplate.FieldGoldMin)
+	}
+	if m.FieldCleared(npctemplate.FieldGoldMax) {
+		fields = append(fields, npctemplate.FieldGoldMax)
 	}
 	return fields
 }
@@ -33556,6 +33825,15 @@ func (m *NPCTemplateMutation) ClearField(name string) error {
 		return nil
 	case npctemplate.FieldNotifyOnEnter:
 		m.ClearNotifyOnEnter()
+		return nil
+	case npctemplate.FieldIsBoss:
+		m.ClearIsBoss()
+		return nil
+	case npctemplate.FieldGoldMin:
+		m.ClearGoldMin()
+		return nil
+	case npctemplate.FieldGoldMax:
+		m.ClearGoldMax()
 		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate nullable field %s", name)
@@ -33627,6 +33905,15 @@ func (m *NPCTemplateMutation) ResetField(name string) error {
 		return nil
 	case npctemplate.FieldNotifyOnEnter:
 		m.ResetNotifyOnEnter()
+		return nil
+	case npctemplate.FieldIsBoss:
+		m.ResetIsBoss()
+		return nil
+	case npctemplate.FieldGoldMin:
+		m.ResetGoldMin()
+		return nil
+	case npctemplate.FieldGoldMax:
+		m.ResetGoldMax()
 		return nil
 	}
 	return fmt.Errorf("unknown NPCTemplate field %s", name)

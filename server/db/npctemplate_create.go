@@ -263,6 +263,48 @@ func (_c *NPCTemplateCreate) SetNillableNotifyOnEnter(v *bool) *NPCTemplateCreat
 	return _c
 }
 
+// SetIsBoss sets the "is_boss" field.
+func (_c *NPCTemplateCreate) SetIsBoss(v bool) *NPCTemplateCreate {
+	_c.mutation.SetIsBoss(v)
+	return _c
+}
+
+// SetNillableIsBoss sets the "is_boss" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableIsBoss(v *bool) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetIsBoss(*v)
+	}
+	return _c
+}
+
+// SetGoldMin sets the "gold_min" field.
+func (_c *NPCTemplateCreate) SetGoldMin(v int) *NPCTemplateCreate {
+	_c.mutation.SetGoldMin(v)
+	return _c
+}
+
+// SetNillableGoldMin sets the "gold_min" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableGoldMin(v *int) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetGoldMin(*v)
+	}
+	return _c
+}
+
+// SetGoldMax sets the "gold_max" field.
+func (_c *NPCTemplateCreate) SetGoldMax(v int) *NPCTemplateCreate {
+	_c.mutation.SetGoldMax(v)
+	return _c
+}
+
+// SetNillableGoldMax sets the "gold_max" field if the given value is not nil.
+func (_c *NPCTemplateCreate) SetNillableGoldMax(v *int) *NPCTemplateCreate {
+	if v != nil {
+		_c.SetGoldMax(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *NPCTemplateCreate) SetID(v string) *NPCTemplateCreate {
 	_c.mutation.SetID(v)
@@ -412,6 +454,18 @@ func (_c *NPCTemplateCreate) defaults() {
 	if _, ok := _c.mutation.NotifyOnEnter(); !ok {
 		v := npctemplate.DefaultNotifyOnEnter
 		_c.mutation.SetNotifyOnEnter(v)
+	}
+	if _, ok := _c.mutation.IsBoss(); !ok {
+		v := npctemplate.DefaultIsBoss
+		_c.mutation.SetIsBoss(v)
+	}
+	if _, ok := _c.mutation.GoldMin(); !ok {
+		v := npctemplate.DefaultGoldMin
+		_c.mutation.SetGoldMin(v)
+	}
+	if _, ok := _c.mutation.GoldMax(); !ok {
+		v := npctemplate.DefaultGoldMax
+		_c.mutation.SetGoldMax(v)
 	}
 }
 
@@ -574,6 +628,18 @@ func (_c *NPCTemplateCreate) createSpec() (*NPCTemplate, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.NotifyOnEnter(); ok {
 		_spec.SetField(npctemplate.FieldNotifyOnEnter, field.TypeBool, value)
 		_node.NotifyOnEnter = value
+	}
+	if value, ok := _c.mutation.IsBoss(); ok {
+		_spec.SetField(npctemplate.FieldIsBoss, field.TypeBool, value)
+		_node.IsBoss = value
+	}
+	if value, ok := _c.mutation.GoldMin(); ok {
+		_spec.SetField(npctemplate.FieldGoldMin, field.TypeInt, value)
+		_node.GoldMin = value
+	}
+	if value, ok := _c.mutation.GoldMax(); ok {
+		_spec.SetField(npctemplate.FieldGoldMax, field.TypeInt, value)
+		_node.GoldMax = value
 	}
 	if nodes := _c.mutation.NpcAbilitiesIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -75,6 +75,7 @@ type model struct {
 	characterMaxMana     int
 	characterLevel       int
 	characterExperience  int
+	characterSkillTech   int
 
 	// Profile editing state
 	editField string // "gender" or "description"

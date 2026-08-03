@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CombatTarget, CombatLogEntry, CharacterSkill } from "../lib/types";
-import { getCombatStatus, applyDamage, healCharacter } from "../lib/api";
+import type { EquipmentItem } from "../lib/api";
+import { getCombatStatus, applyDamage, healCharacter, getCharacterEquipment, adjustMana } from "../lib/api";
 import {
   rollD20,
   calculatePlayerDamage,
@@ -12,16 +13,41 @@ import {
 
 const TICK_MS = 1500;
 
+// AbilityData represents an ability for combat display
+type AbilityData = {
+  readonly id: number;
+  readonly name: string;
+  readonly description?: string;
+  readonly casterMessage?: string;
+  readonly recipientMessage?: string;
+  readonly manaCost?: number;
+  readonly staminaCost?: number;
+  readonly cooldown?: number;
+};
+
+// EffectData represents an ability effect
+type EffectData = {
+  readonly effectType: string;
+  readonly effectMessage?: string;
+  readonly target: string;
+  readonly value: number;
+};
+
 type Props = {
   characterID: number;
   characterLevel: number;
   characterStrength: number;
   initialHP: number;
   initialMaxHP: number;
+  initialMana: number;
+  initialMaxMana: number;
   skills: readonly CharacterSkill[];
   onLog: (text: string, kind: CombatLogEntry["kind"]) => void;
   onCombatEnd: () => void;
   onPlayerHPChange: (hp: number) => void;
+  // Optional: pass ability details to display messages
+  abilities?: readonly AbilityData[];
+  effects?: readonly EffectData[];
 };
 
 export function useCombatEngine({
@@ -30,9 +56,13 @@ export function useCombatEngine({
   characterStrength,
   initialHP,
   initialMaxHP,
+  initialMana,
+  initialMaxMana,
   onLog,
   onCombatEnd,
   onPlayerHPChange,
+  abilities = [],
+  effects = [],
 }: Props) {
   const [inCombat, setInCombat] = useState(false);
   const [targets, setTargets] = useState<CombatTarget[]>([]);
@@ -40,9 +70,12 @@ export function useCombatEngine({
   const [round, setRound] = useState(0);
   const [queuedAction, setQueuedAction] = useState<string | null>(null);
   const [playerHP, setPlayerHP] = useState(initialHP);
+  const [playerMana, setPlayerMana] = useState(initialMana);
+  const [playerMaxMana, setPlayerMaxMana] = useState(initialMaxMana);
 
   const targetsRef = useRef(targets);
   const playerHPRef = useRef(playerHP);
+  const playerManaRef = useRef(playerMana);
   const inCombatRef = useRef(inCombat);
   const roundRef = useRef(round);
   const queuedRef = useRef(queuedAction);
@@ -51,6 +84,7 @@ export function useCombatEngine({
 
   targetsRef.current = targets;
   playerHPRef.current = playerHP;
+  playerManaRef.current = playerMana;
   inCombatRef.current = inCombat;
   roundRef.current = round;
   queuedRef.current = queuedAction;
@@ -64,6 +98,49 @@ export function useCombatEngine({
     [onLog]
   );
 
+  // formatCombatMessage generates the combat message based on ability templates
+  const formatCombatMessage = useCallback((ability: AbilityData, effect: EffectData, targetName: string): string => {
+    // Priority: CasterMessage -> RecipientMessage -> EffectMessage -> Default
+
+    // Helper to replace all placeholders
+    const replacePlaceholders = (msg: string): string => {
+      return msg
+        .replace("{actor}", "You")
+        .replace("{recipient}", targetName)
+        .replace("{target}", targetName)
+        .replace("{targetName}", targetName)
+        .replace("{abilityName}", ability.name)
+        .replace("{skillName}", ability.name)
+        .replace("{effectType}", effect.effectType)
+        .replace("{value}", String(effect.value));
+    };
+
+    if (ability.casterMessage) {
+      return replacePlaceholders(ability.casterMessage);
+    }
+
+    if (targetName && ability.recipientMessage) {
+      return replacePlaceholders(ability.recipientMessage);
+    }
+
+    if (effect.effectMessage) {
+      return replacePlaceholders(effect.effectMessage);
+    }
+
+    // Default messages based on effect type
+    if (effect.effectType === "damage") {
+      return `Your ${ability.name} hits ${targetName} for ${effect.value} damage!`;
+    }
+    if (effect.effectType === "heal") {
+      return `You cast ${ability.name} and heal ${effect.value} HP!`;
+    }
+    if (effect.effectType === "stun") {
+      return `${ability.name} stuns ${targetName}!`;
+    }
+
+    return `${ability.name} used on ${targetName}!`;
+  }, []);
+
   const fetchTargetHP = useCallback(async (targetID: number) => {
     try {
       const status = await getCombatStatus(targetID);
@@ -72,6 +149,42 @@ export function useCombatEngine({
       return null;
     }
   }, []);
+
+  // Fetch equipment at combat start
+  // Use a ref for immediate access to equipment (state updates are async)
+  const equipmentRef = useRef<readonly EquipmentItem[]>([]);
+  const [equipmentState, setEquipmentState] = useState<readonly EquipmentItem[]>([]);
+
+  const fetchEquipment = useCallback(async () => {
+    if (characterID > 0) {
+      try {
+        const equp = await getCharacterEquipment(characterID);
+        equipmentRef.current = equp;
+        setEquipmentState(equp);
+        console.log("[Combat] Equipment loaded:", equp.length, "items");
+        if (equp.length > 0) {
+          const mainHand = equp.find(e => e.slot === "main_hand" && e.damage_dice_count > 0);
+          if (mainHand) {
+            console.log("[Combat] Main hand weapon:", mainHand.name, "- damage:", mainHand.damage_dice_count + "d" + mainHand.damage_dice_sides + "+" + mainHand.damage_bonus);
+          } else {
+            console.log("[Combat] No main hand weapon found");
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch equipment:", err);
+      }
+    }
+  }, [characterID]);
+
+  // Log equipment when it changes (for debugging)
+  useEffect(() => {
+    if (equipmentState.length > 0) {
+      const mainHand = equipmentState.find(e => e.slot === "main_hand" && e.damage_dice_count > 0);
+      if (mainHand) {
+        console.log("[Combat] Weapon equipped:", mainHand.name, "dmg:", mainHand.damage_dice_count + "d" + mainHand.damage_dice_sides + "+" + mainHand.damage_bonus);
+      }
+    }
+  }, [equipmentState]);
 
   const performPlayerAttack = useCallback(
     async (target: CombatTarget) => {
@@ -89,10 +202,19 @@ export function useCombatEngine({
         return;
       }
 
-      const damage = calculatePlayerDamage(characterStrength);
+      const damage = calculatePlayerDamage(characterStrength, equipmentRef.current);
       const finalDamage = isCrit ? damage * 2 : damage;
+      console.log("[Combat] Attack:", target.name, "damage:", damage, "final:", finalDamage, "isCrit:", isCrit, "equipment count:", equipmentRef.current.length);
 
-      await applyDamage(target.id, finalDamage, characterID);
+      const dmgResult = await applyDamage(target.id, finalDamage, characterID);
+      if (dmgResult.messages && dmgResult.messages.length > 0) {
+        for (const msg of dmgResult.messages) {
+          addLog(msg, "system");
+        }
+      }
+      if (dmgResult.defeated && dmgResult.gold_dropped && dmgResult.gold_dropped > 0) {
+        addLog(`💰 ${target.name} drops ${dmgResult.gold_dropped} gold!`, "system");
+      }
 
       const newHP = await fetchTargetHP(target.id);
       if (newHP != null) {
@@ -109,7 +231,63 @@ export function useCombatEngine({
         addLog(`⚔ You hit ${target.name} for ${finalDamage} damage!`, "hit");
       }
     },
-    [characterID, characterLevel, characterStrength, addLog, fetchTargetHP]
+    [characterID, characterLevel, characterStrength, addLog, fetchTargetHP, equipmentRef]
+  );
+
+  const performPlayerAbility = useCallback(
+    async (target: CombatTarget, ability: AbilityData, effect: EffectData) => {
+      // Check mana/stamina cost (use manaRef for current mana value)
+      if (ability.manaCost && playerManaRef.current < ability.manaCost) {
+        addLog(`Not enough mana for ${ability.name}`, "error");
+        return;
+      }
+      if (ability.staminaCost && playerManaRef.current < ability.staminaCost) {
+        addLog(`Not enough stamina for ${ability.name}`, "error");
+        return;
+      }
+
+      // Apply costs - deduct from server and update local state
+      if (ability.manaCost) {
+        try {
+          const result = await adjustMana(characterID, -ability.manaCost);
+          setPlayerMana(result.mana);
+          setPlayerMaxMana(result.maxMana);
+          console.log(`[COMBAT] Mana after deduction: ${result.mana}/${result.maxMana}`);
+        } catch (err) {
+          console.error(`Failed to deduct mana: ${err}`);
+        }
+      }
+
+      // Show the cast message first (if available)
+      const castMsg = formatCombatMessage(ability, effect, target.name);
+      if (castMsg) {
+        addLog(castMsg, "system");
+      }
+
+      if (effect.effectType === "damage") {
+        const dmgResult = await applyDamage(target.id, effect.value, characterID);
+        if (dmgResult.messages && dmgResult.messages.length > 0) {
+          for (const msg of dmgResult.messages) {
+            addLog(msg, "system");
+          }
+        }
+        if (dmgResult.defeated && dmgResult.gold_dropped && dmgResult.gold_dropped > 0) {
+          addLog(`💰 ${target.name} drops ${dmgResult.gold_dropped} gold!`, "system");
+        }
+        // Log the damage message showing ability name and damage dealt
+        addLog(`Your ${ability.name} hits ${target.name} for ${effect.value} damage!`, "hit");
+      }
+
+      const newHP = await fetchTargetHP(target.id);
+      if (newHP != null) {
+        const updated = targetsRef.current.map((t) =>
+          t.id === target.id ? { ...t, hp: newHP } : t
+        );
+        targetsRef.current = updated;
+        setTargets(updated);
+      }
+    },
+    [characterID, addLog, formatCombatMessage, fetchTargetHP]
   );
 
   const performEnemyTurn = useCallback(async () => {
@@ -185,6 +363,28 @@ export function useCombatEngine({
       if (aliveTargets.length > 0) {
         await performPlayerAttack(aliveTargets[0]);
       }
+    } else {
+      // Try to find and cast the ability
+      const queuedAbility = abilities.find((a) => a.name === action);
+      if (queuedAbility && queuedAbility.id > 0) {
+        const aliveTargets = targetsRef.current.filter((t) => t.hp > 0);
+        if (aliveTargets.length > 0) {
+          const target = aliveTargets[0];
+          // Find the first damage effect for this ability
+          const damageEffect = effects.find(
+            (e) => e.effectType === "damage" && e.target === "enemy"
+          ) || effects[0];
+          if (damageEffect) {
+            await performPlayerAbility(target, queuedAbility, damageEffect);
+          }
+        }
+      } else {
+        // Unknown action - treat as attack
+        const aliveTargets = targetsRef.current.filter((t) => t.hp > 0);
+        if (aliveTargets.length > 0) {
+          await performPlayerAttack(aliveTargets[0]);
+        }
+      }
     }
 
     if (!inCombatRef.current) return;
@@ -202,7 +402,7 @@ export function useCombatEngine({
       }
       onCombatEnd();
     }
-  }, [characterLevel, addLog, onCombatEnd, performPlayerAttack, performEnemyTurn]);
+  }, [characterLevel, addLog, onCombatEnd, performPlayerAttack, performEnemyTurn, abilities, effects, performPlayerAbility]);
 
   const startCombat = useCallback(
     async (newTargets: CombatTarget[]) => {
@@ -227,6 +427,9 @@ export function useCombatEngine({
 
       addLog(`⚔ Combat started with ${refreshed.map((t) => t.name).join(", ")}!`, "system");
 
+      // Fetch equipment for damage calculation - await it before combat starts
+      await fetchEquipment();
+
       if (tickRef.current) clearInterval(tickRef.current);
       tickRef.current = setInterval(() => {
         if (isProcessingRef.current) return;
@@ -236,7 +439,7 @@ export function useCombatEngine({
         });
       }, TICK_MS);
     },
-    [addLog, processTick]
+    [addLog, processTick, fetchEquipment]
   );
 
   const queueAction = useCallback(
@@ -273,6 +476,8 @@ export function useCombatEngine({
     round,
     queuedAction,
     playerHP,
+    playerMana,
+    playerMaxMana,
     startCombat,
     queueAction,
     exitCombat,

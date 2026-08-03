@@ -26,6 +26,7 @@ type Container struct {
 	Chat               ChatService
 	Zone               *ZoneService
 	ReclassRerace      ReclassReraceService
+	Death              DeathService
 	Client             *db.Client
 }
 
@@ -38,6 +39,7 @@ func NewContainer(client *db.Client, repos *repository.Container, logger *slog.L
 	xpSvc := NewXPAwardService(client, logger)
 	abilityEligSvc := NewAbilityEligibilityService(client)
 	resistanceSvc := NewResistanceService(repos.Character, repos.Race, client, logger)
+	deathSvc := NewDeathService(repos.Character, logger)
 
 	return &Container{
 		Character:          charSvc,
@@ -46,13 +48,14 @@ func NewContainer(client *db.Client, repos *repository.Container, logger *slog.L
 		Quest:             NewQuestService(repos.Quest, repos.QuestProgress),
 		QuestProgress:     NewQuestProgressService(repos.QuestProgress, repos.Quest, repos.Character),
 		Room:               NewRoomService(repos.Room, repos.Character, repos.Equipment, repos.NPCTemplate, repos.Tx, repos.Zone),
-		Combat:             NewCombatService(repos.Character, repos.DamageLog, repos.NPCTemplate, repos.Equipment, resistanceSvc, logger),
+		Combat:             NewCombatService(repos.Character, repos.DamageLog, repos.NPCTemplate, repos.Equipment, resistanceSvc, deathSvc, logger),
 		Resistance:         resistanceSvc,
 		Ability:            NewAbilityService(repos.CharacterAbility, repos.Ability, repos.Character),
 		Chat:               NewChatService(repos.Character, repos.ChannelSubscription, repos.OfflineTell, repos.Ignore),
 		NPC:                NewNPCService(repos.NPCTemplate),
 		Zone:               NewZoneService(repos.Zone, repos.NPCTemplate),
 		ReclassRerace:      NewReclassReraceService(client, logger),
+		Death:              deathSvc,
 		Client:             client,
 	}
 }

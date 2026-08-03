@@ -1,21 +1,24 @@
 import { useEffect, useState } from "react";
-import { createCharacter, listRaces, listGenders, type Race, type Gender, type Character } from "../lib/api";
+import { createCharacter, listRaces, listGenders, listClasses, type Race, type Gender, type Class, type Character } from "../lib/api";
 import { useTheme } from "../lib/theme";
 import { Button, Input, Select } from "../ui";
 
 export type CreateCharacterScreenProps = {
+  worldId: string
   worldName: string
   onCreated: (char: Character) => void
   onBack: () => void
   onLogout: () => void
 };
 
-export default function CreateCharacterScreen( { worldName, onCreated, onBack, onLogout  }: Readonly<CreateCharacterScreenProps>) {
+export default function CreateCharacterScreen( { worldId, worldName, onCreated, onBack, onLogout  }: Readonly<CreateCharacterScreenProps>) {
   const [name, setName] = useState("");
   const [race, setRace] = useState("");
   const [gender, setGender] = useState("");
+  const [charClass, setCharClass] = useState("survivor");
   const [races, setRaces] = useState<readonly Race[]>([]);
   const [genders, setGenders] = useState<readonly Gender[]>([]);
+  const [classes, setClasses] = useState<readonly Class[]>([]);
   const [loadingMeta, setLoadingMeta] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -24,16 +27,21 @@ export default function CreateCharacterScreen( { worldName, onCreated, onBack, o
 
   useEffect(() => {
     setLoadingMeta(true);
-    Promise.all([listRaces(), listGenders()])
-      .then(([r, g]) => {
-        setRaces(r);
-        setGenders(g);
-        if (r.length > 0) setRace(r[0].name);
-        if (g.length > 0) setGender(g[0].name);
+    Promise.all([listRaces(worldId), listGenders(worldId), listClasses(worldId)])
+      .then(([r, g, c]) => {
+        const raceArr = Array.isArray(r) ? r : [];
+        const genderArr = Array.isArray(g) ? g : [];
+        const classArr = Array.isArray(c) ? c : [];
+        setRaces(raceArr);
+        setGenders(genderArr);
+        setClasses(classArr);
+        if (raceArr.length > 0) setRace(raceArr[0].name);
+        if (genderArr.length > 0) setGender(genderArr[0].name);
+        if (classArr.length > 0) setCharClass(classArr[0].name);
       })
       .catch((e) => setError(e.message || "Failed to load options"))
       .finally(() => setLoadingMeta(false));
-  }, []);
+  }, [worldId]);
 
   function validateName(v: string): boolean {
     if (v.length < 1 || v.length > 23) {
@@ -54,7 +62,7 @@ export default function CreateCharacterScreen( { worldName, onCreated, onBack, o
     setSaving(true);
     setError("");
     try {
-      const char = await createCharacter({ name, race, gender, world: worldName });
+      const char = await createCharacter({ name, race, gender, world: worldId, class: charClass });
       onCreated(char);
     } catch (e: unknown) {
       setError((e instanceof Error ? e.message : String(e)) || "Failed to create character");
@@ -128,6 +136,23 @@ export default function CreateCharacterScreen( { worldName, onCreated, onBack, o
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
               />
+
+              <Select
+                label="Class"
+                options={classes.map((cl) => ({
+                  value: cl.name,
+                  label: cl.display_name,
+                }))}
+                value={charClass}
+                onChange={(e) => setCharClass(e.target.value)}
+              />
+              {classes.length > 0 && (
+                <p className="text-xs text-muted -mt-3">
+                  {classes[0].source === "db"
+                    ? `Source: DB (world ${worldId})`
+                    : "Source: Default"}
+                </p>
+              )}
 
               {error && (
                 <p className="text-sm font-mono text-danger">{error}</p>

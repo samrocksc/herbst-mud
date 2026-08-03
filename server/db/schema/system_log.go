@@ -42,5 +42,6 @@ func (SystemLog) Indexes() []ent.Index {
 		index.Fields("action"),
 		index.Fields("timestamp"),
 		index.Fields("action", "timestamp"),
+		index.Fields("character_id"),
 	}
 }

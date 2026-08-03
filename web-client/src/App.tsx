@@ -5,14 +5,17 @@ import WorldScreen from "./components/WorldScreen";
 import CharacterScreen from "./components/CharacterScreen";
 import CreateCharacterScreen from "./components/CreateCharacterScreen";
 import GameScreen from "./components/GameScreen";
+import { MUDConnectionProvider } from "./context/MUDConnectionProvider";
 import { me, type Character } from "./lib/api";
 
 function AppInner() {
   const [phase, setPhase] = useState<"checking" | "login" | "world" | "character" | "create" | "playing">("checking");
-  const [selectedWorld, setSelectedWorld] = useState<string | null>(null);
+  const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null);
+  const [selectedWorldName, setSelectedWorldName] = useState<string | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
 
   useEffect(() => {
+    console.log("[APP] AppInner render cycle");
     const token = localStorage.getItem("herbst_token");
     if (!token) {
       setPhase("login");
@@ -28,7 +31,8 @@ function AppInner() {
 
   const doLogout = useCallback(() => {
     localStorage.removeItem("herbst_token");
-    setSelectedWorld(null);
+    setSelectedWorldId(null);
+    setSelectedWorldName(null);
     setSelectedCharacter(null);
     setPhase("login");
   }, []);
@@ -48,12 +52,12 @@ function AppInner() {
     return <LoginScreen onLogin={() => setPhase("world")} />;
   }
 
-  if (phase === "create" && selectedWorld) {
+  if (phase === "create" && selectedWorldId && selectedWorldName) {
     return (
       <CreateCharacterScreen
-        worldName={selectedWorld}
+        worldId={selectedWorldId}
+        worldName={selectedWorldName}
         onCreated={(char) => {
-          // Auto-enter game with newly created character
           setSelectedCharacter(char);
           setPhase("playing");
         }}
@@ -63,11 +67,12 @@ function AppInner() {
     );
   }
 
-  if (phase === "playing" && selectedWorld && selectedCharacter) {
+  if (phase === "playing" && selectedWorldId && selectedWorldName && selectedCharacter) {
     const token = localStorage.getItem("herbst_token") || "";
     return (
       <GameScreen
-        worldName={selectedWorld}
+        worldId={selectedWorldId}
+        worldName={selectedWorldName}
         character={selectedCharacter}
         token={token}
         onDisconnect={() => {
@@ -78,17 +83,19 @@ function AppInner() {
     );
   }
 
-  if (phase === "character" && selectedWorld) {
+  if (phase === "character" && selectedWorldId && selectedWorldName) {
     return (
       <CharacterScreen
-        worldName={selectedWorld}
+        worldId={selectedWorldId}
+        worldName={selectedWorldName}
         onSelectCharacter={(char) => {
           setSelectedCharacter(char);
           setPhase("playing");
         }}
         onCreateNew={() => setPhase("create")}
         onBack={() => {
-          setSelectedWorld(null);
+          setSelectedWorldId(null);
+          setSelectedWorldName(null);
           setPhase("world");
         }}
         onLogout={doLogout}
@@ -98,8 +105,9 @@ function AppInner() {
 
   return <WorldScreen
     onLogout={doLogout}
-    onSelectWorld={(name) => {
-      setSelectedWorld(name);
+    onSelectWorld={(worldId, worldName) => {
+      setSelectedWorldId(worldId);
+      setSelectedWorldName(worldName);
       setPhase("character");
     }}
   />;
@@ -108,7 +116,9 @@ function AppInner() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AppInner />
+      <MUDConnectionProvider>
+        <AppInner />
+      </MUDConnectionProvider>
     </ThemeProvider>
   );
 }

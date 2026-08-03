@@ -423,6 +423,80 @@ func (_u *NPCTemplateUpdate) ClearNotifyOnEnter() *NPCTemplateUpdate {
 	return _u
 }
 
+// SetIsBoss sets the "is_boss" field.
+func (_u *NPCTemplateUpdate) SetIsBoss(v bool) *NPCTemplateUpdate {
+	_u.mutation.SetIsBoss(v)
+	return _u
+}
+
+// SetNillableIsBoss sets the "is_boss" field if the given value is not nil.
+func (_u *NPCTemplateUpdate) SetNillableIsBoss(v *bool) *NPCTemplateUpdate {
+	if v != nil {
+		_u.SetIsBoss(*v)
+	}
+	return _u
+}
+
+// ClearIsBoss clears the value of the "is_boss" field.
+func (_u *NPCTemplateUpdate) ClearIsBoss() *NPCTemplateUpdate {
+	_u.mutation.ClearIsBoss()
+	return _u
+}
+
+// SetGoldMin sets the "gold_min" field.
+func (_u *NPCTemplateUpdate) SetGoldMin(v int) *NPCTemplateUpdate {
+	_u.mutation.ResetGoldMin()
+	_u.mutation.SetGoldMin(v)
+	return _u
+}
+
+// SetNillableGoldMin sets the "gold_min" field if the given value is not nil.
+func (_u *NPCTemplateUpdate) SetNillableGoldMin(v *int) *NPCTemplateUpdate {
+	if v != nil {
+		_u.SetGoldMin(*v)
+	}
+	return _u
+}
+
+// AddGoldMin adds value to the "gold_min" field.
+func (_u *NPCTemplateUpdate) AddGoldMin(v int) *NPCTemplateUpdate {
+	_u.mutation.AddGoldMin(v)
+	return _u
+}
+
+// ClearGoldMin clears the value of the "gold_min" field.
+func (_u *NPCTemplateUpdate) ClearGoldMin() *NPCTemplateUpdate {
+	_u.mutation.ClearGoldMin()
+	return _u
+}
+
+// SetGoldMax sets the "gold_max" field.
+func (_u *NPCTemplateUpdate) SetGoldMax(v int) *NPCTemplateUpdate {
+	_u.mutation.ResetGoldMax()
+	_u.mutation.SetGoldMax(v)
+	return _u
+}
+
+// SetNillableGoldMax sets the "gold_max" field if the given value is not nil.
+func (_u *NPCTemplateUpdate) SetNillableGoldMax(v *int) *NPCTemplateUpdate {
+	if v != nil {
+		_u.SetGoldMax(*v)
+	}
+	return _u
+}
+
+// AddGoldMax adds value to the "gold_max" field.
+func (_u *NPCTemplateUpdate) AddGoldMax(v int) *NPCTemplateUpdate {
+	_u.mutation.AddGoldMax(v)
+	return _u
+}
+
+// ClearGoldMax clears the value of the "gold_max" field.
+func (_u *NPCTemplateUpdate) ClearGoldMax() *NPCTemplateUpdate {
+	_u.mutation.ClearGoldMax()
+	return _u
+}
+
 // AddNpcAbilityIDs adds the "npc_abilities" edge to the NPCAbility entity by IDs.
 func (_u *NPCTemplateUpdate) AddNpcAbilityIDs(ids ...int) *NPCTemplateUpdate {
 	_u.mutation.AddNpcAbilityIDs(ids...)
@@ -759,6 +833,30 @@ func (_u *NPCTemplateUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if _u.mutation.NotifyOnEnterCleared() {
 		_spec.ClearField(npctemplate.FieldNotifyOnEnter, field.TypeBool)
+	}
+	if value, ok := _u.mutation.IsBoss(); ok {
+		_spec.SetField(npctemplate.FieldIsBoss, field.TypeBool, value)
+	}
+	if _u.mutation.IsBossCleared() {
+		_spec.ClearField(npctemplate.FieldIsBoss, field.TypeBool)
+	}
+	if value, ok := _u.mutation.GoldMin(); ok {
+		_spec.SetField(npctemplate.FieldGoldMin, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedGoldMin(); ok {
+		_spec.AddField(npctemplate.FieldGoldMin, field.TypeInt, value)
+	}
+	if _u.mutation.GoldMinCleared() {
+		_spec.ClearField(npctemplate.FieldGoldMin, field.TypeInt)
+	}
+	if value, ok := _u.mutation.GoldMax(); ok {
+		_spec.SetField(npctemplate.FieldGoldMax, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedGoldMax(); ok {
+		_spec.AddField(npctemplate.FieldGoldMax, field.TypeInt, value)
+	}
+	if _u.mutation.GoldMaxCleared() {
+		_spec.ClearField(npctemplate.FieldGoldMax, field.TypeInt)
 	}
 	if _u.mutation.NpcAbilitiesCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -1378,6 +1476,80 @@ func (_u *NPCTemplateUpdateOne) ClearNotifyOnEnter() *NPCTemplateUpdateOne {
 	return _u
 }
 
+// SetIsBoss sets the "is_boss" field.
+func (_u *NPCTemplateUpdateOne) SetIsBoss(v bool) *NPCTemplateUpdateOne {
+	_u.mutation.SetIsBoss(v)
+	return _u
+}
+
+// SetNillableIsBoss sets the "is_boss" field if the given value is not nil.
+func (_u *NPCTemplateUpdateOne) SetNillableIsBoss(v *bool) *NPCTemplateUpdateOne {
+	if v != nil {
+		_u.SetIsBoss(*v)
+	}
+	return _u
+}
+
+// ClearIsBoss clears the value of the "is_boss" field.
+func (_u *NPCTemplateUpdateOne) ClearIsBoss() *NPCTemplateUpdateOne {
+	_u.mutation.ClearIsBoss()
+	return _u
+}
+
+// SetGoldMin sets the "gold_min" field.
+func (_u *NPCTemplateUpdateOne) SetGoldMin(v int) *NPCTemplateUpdateOne {
+	_u.mutation.ResetGoldMin()
+	_u.mutation.SetGoldMin(v)
+	return _u
+}
+
+// SetNillableGoldMin sets the "gold_min" field if the given value is not nil.
+func (_u *NPCTemplateUpdateOne) SetNillableGoldMin(v *int) *NPCTemplateUpdateOne {
+	if v != nil {
+		_u.SetGoldMin(*v)
+	}
+	return _u
+}
+
+// AddGoldMin adds value to the "gold_min" field.
+func (_u *NPCTemplateUpdateOne) AddGoldMin(v int) *NPCTemplateUpdateOne {
+	_u.mutation.AddGoldMin(v)
+	return _u
+}
+
+// ClearGoldMin clears the value of the "gold_min" field.
+func (_u *NPCTemplateUpdateOne) ClearGoldMin() *NPCTemplateUpdateOne {
+	_u.mutation.ClearGoldMin()
+	return _u
+}
+
+// SetGoldMax sets the "gold_max" field.
+func (_u *NPCTemplateUpdateOne) SetGoldMax(v int) *NPCTemplateUpdateOne {
+	_u.mutation.ResetGoldMax()
+	_u.mutation.SetGoldMax(v)
+	return _u
+}
+
+// SetNillableGoldMax sets the "gold_max" field if the given value is not nil.
+func (_u *NPCTemplateUpdateOne) SetNillableGoldMax(v *int) *NPCTemplateUpdateOne {
+	if v != nil {
+		_u.SetGoldMax(*v)
+	}
+	return _u
+}
+
+// AddGoldMax adds value to the "gold_max" field.
+func (_u *NPCTemplateUpdateOne) AddGoldMax(v int) *NPCTemplateUpdateOne {
+	_u.mutation.AddGoldMax(v)
+	return _u
+}
+
+// ClearGoldMax clears the value of the "gold_max" field.
+func (_u *NPCTemplateUpdateOne) ClearGoldMax() *NPCTemplateUpdateOne {
+	_u.mutation.ClearGoldMax()
+	return _u
+}
+
 // AddNpcAbilityIDs adds the "npc_abilities" edge to the NPCAbility entity by IDs.
 func (_u *NPCTemplateUpdateOne) AddNpcAbilityIDs(ids ...int) *NPCTemplateUpdateOne {
 	_u.mutation.AddNpcAbilityIDs(ids...)
@@ -1744,6 +1916,30 @@ func (_u *NPCTemplateUpdateOne) sqlSave(ctx context.Context) (_node *NPCTemplate
 	}
 	if _u.mutation.NotifyOnEnterCleared() {
 		_spec.ClearField(npctemplate.FieldNotifyOnEnter, field.TypeBool)
+	}
+	if value, ok := _u.mutation.IsBoss(); ok {
+		_spec.SetField(npctemplate.FieldIsBoss, field.TypeBool, value)
+	}
+	if _u.mutation.IsBossCleared() {
+		_spec.ClearField(npctemplate.FieldIsBoss, field.TypeBool)
+	}
+	if value, ok := _u.mutation.GoldMin(); ok {
+		_spec.SetField(npctemplate.FieldGoldMin, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedGoldMin(); ok {
+		_spec.AddField(npctemplate.FieldGoldMin, field.TypeInt, value)
+	}
+	if _u.mutation.GoldMinCleared() {
+		_spec.ClearField(npctemplate.FieldGoldMin, field.TypeInt)
+	}
+	if value, ok := _u.mutation.GoldMax(); ok {
+		_spec.SetField(npctemplate.FieldGoldMax, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedGoldMax(); ok {
+		_spec.AddField(npctemplate.FieldGoldMax, field.TypeInt, value)
+	}
+	if _u.mutation.GoldMaxCleared() {
+		_spec.ClearField(npctemplate.FieldGoldMax, field.TypeInt)
 	}
 	if _u.mutation.NpcAbilitiesCleared() {
 		edge := &sqlgraph.EdgeSpec{

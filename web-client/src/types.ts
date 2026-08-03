@@ -15,6 +15,7 @@ export type RoomCharacter = {
   readonly type: "npc" | "player";
   readonly id: number;
   readonly hostile: boolean;
+  readonly npc_template_id?: string;
 };
 
 export type RoomItem = {
@@ -32,9 +33,9 @@ export type RoomScreenPayload = {
   readonly title: string;
   readonly description: string;
   readonly ascii_art_id?: string;
-  readonly exits: readonly RoomExit[];
-  readonly characters: readonly RoomCharacter[];
-  readonly items: readonly RoomItem[];
+  readonly exits: readonly RoomExit[] | null;
+  readonly characters: readonly RoomCharacter[] | null;
+  readonly items: readonly RoomItem[] | null;
 };
 
 // --- WebSocket protocol types ---

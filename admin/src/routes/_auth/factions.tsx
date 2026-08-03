@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { showToast } from "../../components/Toast";
-import { apiGet, apiPost, apiDelete } from "../../utils/apiFetch";
+import { apiGet, apiPost, apiDelete, buildWorldParams } from "../../utils/apiFetch";
 import { DataTable, type Column } from "../../components/DataTable";
+import { useWorldStore } from "../../contexts/WorldStoreContext";
 import { FactionDetail } from "./FactionDetail";
 import { CreateFactionView } from "./CreateFactionView";
 import { CategoryManager, CreateCategoryForm, CategoryEditForm } from "./CategoryManager";
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/_auth/factions")({
 });
 
 function FactionsManagement() {
+  const { currentWorld } = useWorldStore();
   const [factions, setFactions] = useState<Faction[]>([]);
   const [categories, setCategories] = useState<FactionCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,14 +35,16 @@ function FactionsManagement() {
 
   const refresh = useCallback(async () => {
     try {
+      const qs = buildWorldParams(currentWorld);
+      const suffix = qs ? `?${qs}` : "";
       const [f, c] = await Promise.all([
-        apiGet<Faction[]>("/api/factions"),
-        apiGet<FactionCategory[]>("/api/faction-categories"),
+        apiGet<Faction[]>(`/api/factions${suffix}`),
+        apiGet<FactionCategory[]>(`/api/faction-categories${suffix}`),
       ]);
       setFactions(Array.isArray(f) ? f : []);
       setCategories(Array.isArray(c) ? c : []);
     } catch { showToast("Failed to load data", "error"); }
-  }, []);
+  }, [currentWorld]);
 
   useEffect(() => { refresh().then(() => setLoading(false)); }, [refresh]);
 
@@ -53,7 +57,7 @@ function FactionsManagement() {
     if (!form.name) { setCreateError("Faction name is required"); return; }
     setSaving(true); setCreateError("");
     try {
-      await apiPost("/api/factions", { ...form, display_name: form.display_name || form.name, category_id: form.category_id || null });
+      await apiPost(`/api/factions?${buildWorldParams(currentWorld)}`, { ...form, display_name: form.display_name || form.name, category_id: form.category_id || null, world_id: currentWorld });
       showToast("Faction created", "success");
       setForm(EMPTY_FORM); setShowCreateForm(false); refresh();
     } catch (err) {

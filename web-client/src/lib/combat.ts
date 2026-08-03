@@ -3,6 +3,8 @@
  * Mirrors the SSH client's dice logic in herbst/dice/ and game_combat.go.
  */
 
+import type { EquipmentItem } from "./api";
+
 export type DiceResult = {
   roll: number;
   total: number;
@@ -28,8 +30,34 @@ export function rollDamage(sides: number, count: number, modifier = 0): number {
   return Math.max(1, total);
 }
 
-/** Base player damage: 1 + strength/5 (matches server tryAttack logic) */
-export function calculatePlayerDamage(strength: number): number {
+/** Base player damage from weapon and strength */
+export function calculatePlayerDamage(strength: number, equipment?: readonly EquipmentItem[]): number {
+  // Find main hand weapon
+  const mainHandWeapon = equipment?.find(
+    (item) => item.slot === "main_hand" && item.damage_dice_count > 0
+  );
+  // Debug: log equipment info when weapon is found
+  if (mainHandWeapon) {
+    const strMod = Math.floor((strength - 10) / 2);
+    const totalMod = mainHandWeapon.damage_bonus + strMod;
+    const expectedMin = mainHandWeapon.damage_dice_count + totalMod;
+    const expectedMax = mainHandWeapon.damage_dice_count * mainHandWeapon.damage_dice_sides + totalMod;
+    console.log("[Combat] Using weapon:", mainHandWeapon.name, "STR:", strength, "StrMod:", strMod, "Bonus:", mainHandWeapon.damage_bonus, "Expected range:", expectedMin, "-", expectedMax);
+  }
+
+  if (mainHandWeapon) {
+    // Calculate damage: dice + damage_bonus + STR modifier
+    const strMod = Math.floor((strength - 10) / 2);
+    const totalMod = mainHandWeapon.damage_bonus + strMod;
+    const damage = rollDamage(
+      mainHandWeapon.damage_dice_sides,
+      mainHandWeapon.damage_dice_count,
+      totalMod
+    );
+    return damage;
+  }
+
+  // No weapon - use simple strength-based damage (fists)
   return Math.max(1, 1 + Math.floor(strength / 5));
 }
 

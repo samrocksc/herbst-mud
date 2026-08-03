@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { CombatLogEntry } from "../lib/types";
 
 type Props = {
@@ -19,8 +20,16 @@ function kindColor(kind: CombatLogEntry["kind"]): string {
 }
 
 export default function CombatLog({ entries }: Props) {
+  const logRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (logRef.current) {
+      logRef.current.scrollTop = logRef.current.scrollHeight;
+    }
+  }, [entries]);
+
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto bg-black/20 rounded border border-border/50 px-3 py-2 space-y-1">
+    <div className="flex-1 min-h-0 overflow-y-auto bg-black/20 rounded border border-border/50 px-3 py-2 space-y-1" ref={logRef}>
       {entries.length === 0 && (
         <p className="text-[10px] text-muted text-center italic">Combat log empty...</p>
       )}

@@ -64,5 +64,25 @@ memory/
 HONCHO_CONTEXT.md
 
 # Ticket workflow directories
-tickets/
+# tickets/
 done/
+tasks/
+tickets/
+
+# Playwright MCP session artifacts
+.playwright-mcp/
+
+# Test results
+test-results/
+web-client/test-results/
+
+# Node modules
+node_modules/
+
+# Stray Go binaries (scratch builds)
+herbst/herbst-ssh
+
+# Misc scratch files
+admin-login-page
+admin/1
+hash_pw.go

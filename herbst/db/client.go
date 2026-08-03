@@ -26,6 +26,7 @@ import (
 	"herbst/db/race"
 	"herbst/db/room"
 	"herbst/db/user"
+	"herbst/db/zone"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
@@ -68,6 +69,8 @@ type Client struct {
 	Room *RoomClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// Zone is the client for interacting with the Zone builders.
+	Zone *ZoneClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -94,6 +97,7 @@ func (c *Client) init() {
 	c.Race = NewRaceClient(c.config)
 	c.Room = NewRoomClient(c.config)
 	c.User = NewUserClient(c.config)
+	c.Zone = NewZoneClient(c.config)
 }
 
 type (
@@ -201,6 +205,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Race:              NewRaceClient(cfg),
 		Room:              NewRoomClient(cfg),
 		User:              NewUserClient(cfg),
+		Zone:              NewZoneClient(cfg),
 	}, nil
 }
 
@@ -235,6 +240,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Race:              NewRaceClient(cfg),
 		Room:              NewRoomClient(cfg),
 		User:              NewUserClient(cfg),
+		Zone:              NewZoneClient(cfg),
 	}, nil
 }
 
@@ -266,7 +272,7 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Ability, c.AbilityEffect, c.ActiveEffect, c.Character, c.DialogNode, c.Effect,
 		c.EffectHook, c.Equipment, c.EquipmentTemplate, c.NPCTemplate, c.Quest,
-		c.QuestProgress, c.Race, c.Room, c.User,
+		c.QuestProgress, c.Race, c.Room, c.User, c.Zone,
 	} {
 		n.Use(hooks...)
 	}
@@ -278,7 +284,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Ability, c.AbilityEffect, c.ActiveEffect, c.Character, c.DialogNode, c.Effect,
 		c.EffectHook, c.Equipment, c.EquipmentTemplate, c.NPCTemplate, c.Quest,
-		c.QuestProgress, c.Race, c.Room, c.User,
+		c.QuestProgress, c.Race, c.Room, c.User, c.Zone,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -317,6 +323,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Room.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
+	case *ZoneMutation:
+		return c.Zone.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("db: unknown mutation type %T", m)
 	}
@@ -2559,6 +2567,22 @@ func (c *RoomClient) QueryEquipment(_m *Room) *EquipmentQuery {
 	return query
 }
 
+// QueryZones queries the zones edge of a Room.
+func (c *RoomClient) QueryZones(_m *Room) *ZoneQuery {
+	query := (&ZoneClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(room.Table, room.FieldID, id),
+			sqlgraph.To(zone.Table, zone.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, room.ZonesTable, room.ZonesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *RoomClient) Hooks() []Hook {
 	return c.hooks.Room
@@ -2733,16 +2757,197 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 	}
 }
 
+// ZoneClient is a client for the Zone schema.
+type ZoneClient struct {
+	config
+}
+
+// NewZoneClient returns a client for the Zone from the given config.
+func NewZoneClient(c config) *ZoneClient {
+	return &ZoneClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `zone.Hooks(f(g(h())))`.
+func (c *ZoneClient) Use(hooks ...Hook) {
+	c.hooks.Zone = append(c.hooks.Zone, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `zone.Intercept(f(g(h())))`.
+func (c *ZoneClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Zone = append(c.inters.Zone, interceptors...)
+}
+
+// Create returns a builder for creating a Zone entity.
+func (c *ZoneClient) Create() *ZoneCreate {
+	mutation := newZoneMutation(c.config, OpCreate)
+	return &ZoneCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Zone entities.
+func (c *ZoneClient) CreateBulk(builders ...*ZoneCreate) *ZoneCreateBulk {
+	return &ZoneCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ZoneClient) MapCreateBulk(slice any, setFunc func(*ZoneCreate, int)) *ZoneCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ZoneCreateBulk{err: fmt.Errorf("calling to ZoneClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ZoneCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ZoneCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Zone.
+func (c *ZoneClient) Update() *ZoneUpdate {
+	mutation := newZoneMutation(c.config, OpUpdate)
+	return &ZoneUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ZoneClient) UpdateOne(_m *Zone) *ZoneUpdateOne {
+	mutation := newZoneMutation(c.config, OpUpdateOne, withZone(_m))
+	return &ZoneUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ZoneClient) UpdateOneID(id string) *ZoneUpdateOne {
+	mutation := newZoneMutation(c.config, OpUpdateOne, withZoneID(id))
+	return &ZoneUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Zone.
+func (c *ZoneClient) Delete() *ZoneDelete {
+	mutation := newZoneMutation(c.config, OpDelete)
+	return &ZoneDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ZoneClient) DeleteOne(_m *Zone) *ZoneDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ZoneClient) DeleteOneID(id string) *ZoneDeleteOne {
+	builder := c.Delete().Where(zone.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ZoneDeleteOne{builder}
+}
+
+// Query returns a query builder for Zone.
+func (c *ZoneClient) Query() *ZoneQuery {
+	return &ZoneQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeZone},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Zone entity by its id.
+func (c *ZoneClient) Get(ctx context.Context, id string) (*Zone, error) {
+	return c.Query().Where(zone.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ZoneClient) GetX(ctx context.Context, id string) *Zone {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryParent queries the parent edge of a Zone.
+func (c *ZoneClient) QueryParent(_m *Zone) *ZoneQuery {
+	query := (&ZoneClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(zone.Table, zone.FieldID, id),
+			sqlgraph.To(zone.Table, zone.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, zone.ParentTable, zone.ParentColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryChildren queries the children edge of a Zone.
+func (c *ZoneClient) QueryChildren(_m *Zone) *ZoneQuery {
+	query := (&ZoneClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(zone.Table, zone.FieldID, id),
+			sqlgraph.To(zone.Table, zone.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, zone.ChildrenTable, zone.ChildrenColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryRooms queries the rooms edge of a Zone.
+func (c *ZoneClient) QueryRooms(_m *Zone) *RoomQuery {
+	query := (&RoomClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(zone.Table, zone.FieldID, id),
+			sqlgraph.To(room.Table, room.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, zone.RoomsTable, zone.RoomsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ZoneClient) Hooks() []Hook {
+	return c.hooks.Zone
+}
+
+// Interceptors returns the client interceptors.
+func (c *ZoneClient) Interceptors() []Interceptor {
+	return c.inters.Zone
+}
+
+func (c *ZoneClient) mutate(ctx context.Context, m *ZoneMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ZoneCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ZoneUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ZoneUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ZoneDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("db: unknown Zone mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
 		Ability, AbilityEffect, ActiveEffect, Character, DialogNode, Effect, EffectHook,
 		Equipment, EquipmentTemplate, NPCTemplate, Quest, QuestProgress, Race, Room,
-		User []ent.Hook
+		User, Zone []ent.Hook
 	}
 	inters struct {
 		Ability, AbilityEffect, ActiveEffect, Character, DialogNode, Effect, EffectHook,
 		Equipment, EquipmentTemplate, NPCTemplate, Quest, QuestProgress, Race, Room,
-		User []ent.Interceptor
+		User, Zone []ent.Interceptor
 	}
 )

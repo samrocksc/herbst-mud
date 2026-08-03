@@ -32,7 +32,7 @@ func (NPCTemplate) Fields() []ent.Field {
 			Optional().
 			Comment("FK to Race.id — NPC's race"),
 		field.Enum("disposition").
-			Values("hostile", "friendly", "neutral").
+			Values("hostile", "friendly", "neutral", "shopkeeper").
 			Default("neutral"),
 		field.Int("level").
 			Default(1),
@@ -79,6 +79,18 @@ func (NPCTemplate) Fields() []ent.Field {
 			Optional().
 			Default(false).
 			Comment("If true, emit a chat/notification event when this NPC enters a room."),
+		field.Bool("is_boss").
+			Optional().
+			Default(false).
+			Comment("If true, this NPC is a boss. Boss kills emit a boss_killed event for biography tracking."),
+		field.Int("gold_min").
+			Optional().
+			Default(0).
+			Comment("Minimum gold dropped on death (0 = no gold)"),
+		field.Int("gold_max").
+			Optional().
+			Default(0).
+			Comment("Maximum gold dropped on death (0 = no gold)"),
 	}
 }
 

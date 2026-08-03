@@ -270,7 +270,7 @@ var (
 		{Name: "damage_bonus", Type: field.TypeInt, Default: 0},
 		{Name: "damage_type", Type: field.TypeString, Default: ""},
 		{Name: "is_two_handed", Type: field.TypeBool, Default: false},
-		{Name: "equipment_template_id", Type: field.TypeInt, Nullable: true},
+		{Name: "equipment_template_id", Type: field.TypeString, Nullable: true},
 		{Name: "room_equipment", Type: field.TypeInt, Nullable: true},
 	}
 	// EquipmentTable holds the schema information for the "equipment" table.
@@ -295,9 +295,7 @@ var (
 	}
 	// EquipmentTemplatesColumns holds the columns for the "equipment_templates" table.
 	EquipmentTemplatesColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeInt, Increment: true},
-		{Name: "slug", Type: field.TypeString},
-		{Name: "world_id", Type: field.TypeString, Default: "1"},
+		{Name: "id", Type: field.TypeString, Unique: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},
 		{Name: "slot", Type: field.TypeString},
@@ -333,13 +331,6 @@ var (
 		Name:       "equipment_templates",
 		Columns:    EquipmentTemplatesColumns,
 		PrimaryKey: []*schema.Column{EquipmentTemplatesColumns[0]},
-		Indexes: []*schema.Index{
-			{
-				Name:    "equipmenttemplate_slug_world_id",
-				Unique:  true,
-				Columns: []*schema.Column{EquipmentTemplatesColumns[1], EquipmentTemplatesColumns[2]},
-			},
-		},
 	}
 	// NpcTemplatesColumns holds the columns for the "npc_templates" table.
 	NpcTemplatesColumns = []*schema.Column{
@@ -348,11 +339,13 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Size: 2147483647},
 		{Name: "race_id", Type: field.TypeInt, Nullable: true},
-		{Name: "disposition", Type: field.TypeEnum, Enums: []string{"hostile", "friendly", "neutral"}, Default: "neutral"},
+		{Name: "disposition", Type: field.TypeEnum, Enums: []string{"hostile", "friendly", "neutral", "shopkeeper"}, Default: "neutral"},
 		{Name: "level", Type: field.TypeInt, Default: 1},
 		{Name: "skills", Type: field.TypeJSON},
 		{Name: "trades_with", Type: field.TypeJSON},
 		{Name: "greeting", Type: field.TypeString, Size: 2147483647},
+		{Name: "gold_min", Type: field.TypeInt, Nullable: true, Default: 0},
+		{Name: "gold_max", Type: field.TypeInt, Nullable: true, Default: 0},
 	}
 	// NpcTemplatesTable holds the schema information for the "npc_templates" table.
 	NpcTemplatesTable = &schema.Table{
@@ -439,6 +432,7 @@ var (
 		{Name: "exits", Type: field.TypeJSON},
 		{Name: "atmosphere", Type: field.TypeEnum, Enums: []string{"air", "water", "wind"}, Default: "air"},
 		{Name: "tags", Type: field.TypeJSON, Nullable: true},
+		{Name: "zone_ids", Type: field.TypeJSON, Nullable: true},
 	}
 	// RoomsTable holds the schema information for the "rooms" table.
 	RoomsTable = &schema.Table{
@@ -459,6 +453,55 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// ZonesColumns holds the columns for the "zones" table.
+	ZonesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString, Unique: true},
+		{Name: "world_id", Type: field.TypeString, Default: "1"},
+		{Name: "name", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "min_level", Type: field.TypeInt, Default: 1},
+		{Name: "color", Type: field.TypeString, Nullable: true},
+		{Name: "parent_zone_id", Type: field.TypeString, Nullable: true},
+	}
+	// ZonesTable holds the schema information for the "zones" table.
+	ZonesTable = &schema.Table{
+		Name:       "zones",
+		Columns:    ZonesColumns,
+		PrimaryKey: []*schema.Column{ZonesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "zones_zones_children",
+				Columns:    []*schema.Column{ZonesColumns[6]},
+				RefColumns: []*schema.Column{ZonesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
+	// RoomZonesColumns holds the columns for the "room_zones" table.
+	RoomZonesColumns = []*schema.Column{
+		{Name: "room_id", Type: field.TypeInt},
+		{Name: "zone_id", Type: field.TypeString},
+	}
+	// RoomZonesTable holds the schema information for the "room_zones" table.
+	RoomZonesTable = &schema.Table{
+		Name:       "room_zones",
+		Columns:    RoomZonesColumns,
+		PrimaryKey: []*schema.Column{RoomZonesColumns[0], RoomZonesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "room_zones_room_id",
+				Columns:    []*schema.Column{RoomZonesColumns[0]},
+				RefColumns: []*schema.Column{RoomsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "room_zones_zone_id",
+				Columns:    []*schema.Column{RoomZonesColumns[1]},
+				RefColumns: []*schema.Column{ZonesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AbilitiesTable,
@@ -476,6 +519,8 @@ var (
 		RacesTable,
 		RoomsTable,
 		UsersTable,
+		ZonesTable,
+		RoomZonesTable,
 	}
 )
 
@@ -495,4 +540,7 @@ func init() {
 	EquipmentTable.ForeignKeys[1].RefTable = RoomsTable
 	QuestProgressesTable.ForeignKeys[0].RefTable = CharactersTable
 	QuestProgressesTable.ForeignKeys[1].RefTable = QuestsTable
+	ZonesTable.ForeignKeys[0].RefTable = ZonesTable
+	RoomZonesTable.ForeignKeys[0].RefTable = RoomsTable
+	RoomZonesTable.ForeignKeys[1].RefTable = ZonesTable
 }

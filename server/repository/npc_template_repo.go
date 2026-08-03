@@ -106,6 +106,12 @@ func (r *entNPCTemplateRepo) Create(ctx context.Context, input CreateNPCTemplate
 	if input.RespawnCooldown != nil {
 		builder = builder.SetNillableRespawnCooldown(input.RespawnCooldown)
 	}
+	if input.GoldMin > 0 {
+		builder = builder.SetGoldMin(input.GoldMin)
+	}
+	if input.GoldMax > 0 {
+		builder = builder.SetGoldMax(input.GoldMax)
+	}
 	return builder.Save(ctx)
 }
 
@@ -146,6 +152,12 @@ func (r *entNPCTemplateRepo) Update(ctx context.Context, id string, updates NPCT
 	}
 	if updates.RespawnCooldown != nil {
 		builder = builder.SetNillableRespawnCooldown(updates.RespawnCooldown)
+	}
+	if updates.GoldMin != nil {
+		builder = builder.SetGoldMin(*updates.GoldMin)
+	}
+	if updates.GoldMax != nil {
+		builder = builder.SetGoldMax(*updates.GoldMax)
 	}
 	if updates.WorldID != nil {
 		builder = builder.SetWorldID(*updates.WorldID)

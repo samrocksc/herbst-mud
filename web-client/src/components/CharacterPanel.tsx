@@ -6,12 +6,15 @@ type CharacterPanelProps = {
   readonly activeTab: CharacterPanelTab;
   readonly onTabChange: (tab: CharacterPanelTab) => void;
   readonly onClose: () => void;
+  readonly characterId: number;
+  readonly characterName: string;
   readonly skills: readonly CharacterSkill[];
   readonly onSkillSwap: (from: number, to: number) => void;
   readonly inventory: readonly InventoryItem[];
   readonly availableAbilities: readonly Ability[];
   readonly onEquip: (abilityID: number, slot: number) => Promise<void>;
   readonly onUnequip: (slot: number) => Promise<void>;
+  readonly onDelete: (id: number) => void;
 };
 
 function AbilitiesView({
@@ -164,16 +167,63 @@ function InventoryView({ inventory }: { readonly inventory: readonly InventoryIt
   );
 }
 
+function DeleteView({
+  characterId,
+  characterName,
+  onDelete,
+}: {
+  readonly characterId: number;
+  readonly characterName: string;
+  readonly onDelete: (id: number) => void;
+}) {
+  const [confirmName, setConfirmName] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = () => {
+    if (confirmName !== characterName) return;
+    setDeleting(true);
+    onDelete(characterId);
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-muted">
+        Type <span className="font-bold text-foreground">{characterName}</span> to confirm.
+        This permanently deletes your character.
+      </p>
+      <input
+        type="text"
+        value={confirmName}
+        onChange={(e) => setConfirmName(e.target.value)}
+        placeholder={characterName}
+        className="w-full rounded border border-border bg-surface-alt px-3 py-2 font-mono text-sm text-foreground outline-none focus:border-danger"
+      />
+      <Button
+        variant="danger"
+        size="sm"
+        fullWidth
+        disabled={confirmName !== characterName || deleting}
+        onClick={handleDelete}
+      >
+        {deleting ? "Deleting..." : `Delete ${characterName}`}
+      </Button>
+    </div>
+  );
+}
+
 export default function CharacterPanel({
   activeTab,
   onTabChange,
   onClose,
+  characterId,
+  characterName,
   skills,
   onSkillSwap,
   inventory,
   availableAbilities,
   onEquip,
   onUnequip,
+  onDelete,
 }: Readonly<CharacterPanelProps>) {
   return (
     <div className="flex flex-col h-full bg-surface border-l border-border">
@@ -212,6 +262,17 @@ export default function CharacterPanel({
           >
             Inventory
           </button>
+          <button
+            type="button"
+            onClick={() => onTabChange("delete")}
+            className={`shrink-0 whitespace-nowrap px-2 py-1 text-xs font-mono rounded transition-colors ${
+              activeTab === "delete"
+                ? "bg-danger text-background"
+                : "text-muted hover:text-danger"
+            }`}
+          >
+            Delete
+          </button>
         </div>
         <Button variant="ghost" size="sm" onClick={onClose} className="shrink-0 min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0">
           &#x2715;
@@ -227,6 +288,12 @@ export default function CharacterPanel({
             available={availableAbilities}
             onEquip={onEquip}
             onUnequip={onUnequip}
+          />
+        ) : activeTab === "delete" ? (
+          <DeleteView
+            characterId={characterId}
+            characterName={characterName}
+            onDelete={onDelete}
           />
         ) : (
           <InventoryView inventory={inventory} />

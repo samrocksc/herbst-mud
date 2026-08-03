@@ -1,6 +1,7 @@
 /* eslint-disable functional/prefer-immutable-types */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiGet, apiPut, apiPost, apiDelete } from "../utils/apiFetch";
+import { apiGet, apiPut, apiPost, apiDelete, buildWorldParams } from "../utils/apiFetch";
+import { useWorldStore } from "../contexts/WorldStoreContext";
 
 export type Character = Readonly<{
   id: number
@@ -37,6 +38,7 @@ export type Character = Readonly<{
 
 export type CharacterUpdate = Partial<{
   name: string
+  currentWorld: string
   isNPC: boolean
   currentRoomId: number
   startingRoomId: number
@@ -59,10 +61,16 @@ export type CharacterUpdate = Partial<{
 const API = `${window.location.origin}`;
 
 export function useCharacters() {
+  const { currentWorld } = useWorldStore();
   return useQuery({
-    queryKey: ["characters"],
+    queryKey: ["characters", currentWorld],
     queryFn: async (): Promise<Character[]> => {
-      const data = await apiGet<Character[]>(`${API}/characters`);
+      // "default" is the initial localStorage value before the user picks a world.
+      // Map it to world 1 (herbst-mud) so the list isn't empty on first load.
+      const worldId = currentWorld === "default" ? "1" : currentWorld;
+      const qs = buildWorldParams(worldId);
+      const suffix = qs ? `?${qs}` : "";
+      const data = await apiGet<Character[]>(`${API}/characters${suffix}`);
       return Array.isArray(data) ? data : [];
     },
   });
@@ -146,5 +154,44 @@ export function useSpendCharacterGold() {
       queryClient.invalidateQueries({ queryKey: ["character-gold", vars.id] });
       queryClient.invalidateQueries({ queryKey: ["character", vars.id] });
     },
+  });
+}
+
+// --- Biography ---
+
+export type BiographyEntry = Readonly<{
+  id: number;
+  type: string;
+  description: string;
+  timestamp: string;
+  details: Record<string, unknown>;
+}>;
+
+export type BiographySummary = Readonly<{
+  total_events: number;
+  boss_kills: number;
+  npc_kills: number;
+  deaths: number;
+  level_ups: number;
+  class_changes: number;
+  quest_completions: number;
+  skills_learned: number;
+}>;
+
+export type BiographyResponse = Readonly<{
+  character_id: number;
+  character_name: string;
+  entries: BiographyEntry[];
+  summary: BiographySummary;
+}>;
+
+export function useCharacterBiography(id: number, typeFilter?: string) {
+  return useQuery({
+    queryKey: ["character-biography", id, typeFilter],
+    queryFn: async (): Promise<BiographyResponse> => {
+      const params = typeFilter ? `?type=${typeFilter}` : "";
+      return apiGet<BiographyResponse>(`${API}/characters/${id}/biography${params}`);
+    },
+    enabled: !!id,
   });
 }

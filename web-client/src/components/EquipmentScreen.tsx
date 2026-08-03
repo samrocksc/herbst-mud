@@ -38,10 +38,11 @@ function rarityColor(rarity: string): string {
 
 type EquipmentScreenProps = {
   readonly character: Character;
+  readonly worldId: string;
   readonly onClose: () => void;
 };
 
-export default function EquipmentScreen({ character, onClose }: Readonly<EquipmentScreenProps>) {
+export default function EquipmentScreen({ character, worldId, onClose }: Readonly<EquipmentScreenProps>) {
   const [equipped, setEquipped] = useState<readonly EquipmentItem[]>([]);
   const [inventory, setInventory] = useState<readonly EquipmentItem[]>([]);
   const [slots, setSlots] = useState<readonly string[]>(DEFAULT_SLOTS);
@@ -55,7 +56,7 @@ export default function EquipmentScreen({ character, onClose }: Readonly<Equipme
     try {
       const [items, races] = await Promise.all([
         getCharacterEquipment(character.id),
-        listRaces(),
+        listRaces(worldId),
       ]);
       const race = races.find((r: Race) => r.name === character.race);
       const raceSlots = race?.equipment_slots?.length ? race.equipment_slots : DEFAULT_SLOTS;

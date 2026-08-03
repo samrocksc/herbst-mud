@@ -56,6 +56,9 @@ func (r *entCharacterRepo) Update(ctx context.Context, id int, updates Character
 	if updates.Name != nil {
 		builder = builder.SetName(*updates.Name)
 	}
+	if updates.CurrentWorld != nil {
+		builder = builder.SetCurrentWorld(*updates.CurrentWorld)
+	}
 	if updates.CurrentRoomID != nil {
 		builder = builder.SetCurrentRoomId(*updates.CurrentRoomID)
 	}

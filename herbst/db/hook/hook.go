@@ -188,6 +188,18 @@ func (f UserFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.UserMutation", m)
 }
 
+// The ZoneFunc type is an adapter to allow the use of ordinary
+// function as Zone mutator.
+type ZoneFunc func(context.Context, *db.ZoneMutation) (db.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ZoneFunc) Mutate(ctx context.Context, m db.Mutation) (db.Value, error) {
+	if mv, ok := m.(*db.ZoneMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *db.ZoneMutation", m)
+}
+
 // Condition is a hook condition function.
 type Condition func(context.Context, db.Mutation) bool
 
