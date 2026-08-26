@@ -1,3 +1,11 @@
+- [996b2d1](http://github.com/samrocksc/herbst-mud/commit/996b2d1b2d51e9ea8e70db20e62ab1ad60e45738) - test: add Playwright login smoke tests for admin and player client
+- [70ca2e3](http://github.com/samrocksc/herbst-mud/commit/70ca2e39fb5058d77bd523b6ea087f6585a7bb8a) - security: add gitleaks secret scan and Snyk workflows
+- [1deb821](http://github.com/samrocksc/herbst-mud/commit/1deb821eb775ec0021fa6a055f580a1746d4693e) - feat: add ent migration runner and consolidate compose
+- [4955e7d](http://github.com/samrocksc/herbst-mud/commit/4955e7d26850efc7b05e0933fab8c71b2df24f74) - fix: use %d for int TargetID in trigger examine results
+- [24814a6](http://github.com/samrocksc/herbst-mud/commit/24814a67f4655a60a8235d89019d33ad5ae9a2ec) - chore: fix server module split and bump Go to 1.26
+- [de7b751](http://github.com/samrocksc/herbst-mud/commit/de7b751248e12f8ed8b3cc75137eda758ed4b587) - docs: consolidate to a single README, remove agentic doc sprawl
+- [e55e946](http://github.com/samrocksc/herbst-mud/commit/e55e9462efa044850809a408eeef293a273cdb33) - chore: remove agent tooling and committed binaries from public repo
+- [ab6e139](http://github.com/samrocksc/herbst-mud/commit/ab6e1392f8840cd178e7babc66f212bdbccefc26) - chore: auto-update CHANGELOG.md
 - [5e2cda6](http://github.com/samrocksc/herbst-mud/commit/5e2cda6ade2399f19bc1a7ceeba2daba811237da) - 🔵 feat: v0.40.0 — shop system, gold drops, dialog world_id unification, repo cleanup
 - [b08ee4b](http://github.com/samrocksc/herbst-mud/commit/b08ee4b5c7caeb9c39c7fd279657f9193e9df3c1) - chore: auto-update CHANGELOG.md
 - [a7ad4d8](http://github.com/samrocksc/herbst-mud/commit/a7ad4d82252233931117b6e7537d86ddd69e03b4) - 🔵 feat: Phase 5 + 6 — Event System + Charisma & Polish
