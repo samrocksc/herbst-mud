@@ -1,6 +1,11 @@
 # Agent-specific files (personal to each agent)
 AGENT_KNOWLEDGE.md
 
+# Editor/agent tooling (not for public distribution)
+.cursorrules
+CLAUDE.md
+.claude/
+
 # Environment files (contain secrets)
 .env
 herbst/.env
@@ -16,6 +21,13 @@ admin/.env
 *.dll
 *.so
 *.dylib
+
+# Compiled herbst binaries (build artifacts, not committed)
+herbst-web
+bin/
+server/admin-server
+server/constants.test
+herbst/herbst-client
 
 # Go workspace
 go.work
