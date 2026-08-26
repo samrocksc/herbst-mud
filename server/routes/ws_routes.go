@@ -553,11 +553,11 @@ func fireExamineTriggers(ctx context.Context, targetName string, examineLevel in
 	for _, t := range triggers {
 		if t.TriggerType == "examine" && t.Enabled && t.ExamineWeight <= examineLevel {
 			if t.TargetType == "dialog_node" {
-				results = append(results, fmt.Sprintf("Dialog node: %s", t.TargetID))
+				results = append(results, fmt.Sprintf("Dialog node: %d", t.TargetID))
 			} else if t.TargetType == "effect" {
-				results = append(results, fmt.Sprintf("Effect: %s", t.TargetID))
+				results = append(results, fmt.Sprintf("Effect: %d", t.TargetID))
 			} else if t.TargetType == "recipe" {
-				results = append(results, fmt.Sprintf("Recipe: %s", t.TargetID))
+				results = append(results, fmt.Sprintf("Recipe: %d", t.TargetID))
 			}
 		}
 	}
