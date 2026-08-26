@@ -1,0 +1,64 @@
+# Snyk vulnerability scanning — connects the GitHub repo to Snyk.
+# Prerequisites in the Snyk dashboard:
+#   - Add this GitHub repo to a Snyk Project (org-level integration).
+#   - The `SNYK_TOKEN` secret below is optional; Snyk's GitHub App
+#     integration (recommended) does not need it.
+#
+# This workflow runs `snyk test` for dependency vulnerabilities and
+# `snyk code test` for SAST. It fails the build on new high/critical
+# issues.
+
+name: Snyk Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  security:
+    name: Snyk
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Snyk to check for vulnerabilities (Go / server)
+        uses: snyk/actions/golang@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
+          args: --severity-threshold=high --file=server/go.mod --project-name=herbst-mud-server
+          sarif-file-output: snyk-server.sarif
+
+      - name: Run Snyk to check for vulnerabilities (admin npm)
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
+          args: --severity-threshold=high --file=admin/package.json --project-name=herbst-mud-admin
+          sarif-file-output: snyk-admin.sarif
+
+      - name: Run Snyk to check for vulnerabilities (web-client npm)
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
+          args: --severity-threshold=high --file=web-client/package.json --project-name=herbst-mud-web-client
+          sarif-file-output: snyk-webclient.sarif
+
+      - name: Upload SARIF files to GitHub Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: .

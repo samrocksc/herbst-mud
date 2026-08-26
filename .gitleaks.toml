@@ -1,0 +1,20 @@
+# Gitleaks secret-scan configuration.
+# Run via CI (`.github/workflows/gitleaks.yml`) and optionally pre-commit.
+#
+# The test fixtures under server/ intentionally contain dummy credentials
+# (e.g. "sma"/"sma" for the QA account, example JWT secrets). Allowlist them
+# here so the scan targets real secrets, not test data.
+
+title = "Herbst MUD gitleaks config"
+
+[allowlist]
+  description = "Legitimate test fixtures and example values"
+  files = [
+    # Example env templates ship with placeholder secrets
+    '.env.example$',
+    'server/\.env\.example$',
+    # Test fixtures use the sma/sma QA account and dummy JWT secrets
+    '_test\.go$',
+    'features/.*\.feature$',
+    'testdata/.*',
+  ]

@@ -1,0 +1,9 @@
+# Pre-commit hooks for Herbst MUD.
+# Install with:  pre-commit install
+# Requires the `pre-commit` Python package and the gitleaks binary on PATH.
+
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
