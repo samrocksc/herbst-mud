@@ -1,12 +1,15 @@
 # Snyk vulnerability scanning — connects the GitHub repo to Snyk.
-# Prerequisites in the Snyk dashboard:
-#   - Add this GitHub repo to a Snyk Project (org-level integration).
-#   - The `SNYK_TOKEN` secret below is optional; Snyk's GitHub App
-#     integration (recommended) does not need it.
 #
-# This workflow runs `snyk test` for dependency vulnerabilities and
-# `snyk code test` for SAST. It fails the build on new high/critical
-# issues.
+# Two complementary paths:
+#   1. Snyk GitHub App integration (recommended) — monitors the repo from the
+#      Snyk dashboard. Already active; no workflow needed for that.
+#   2. This workflow — runs `snyk test` in CI and uploads SARIF results to the
+#      GitHub Security tab. Requires the `SNYK_TOKEN` repo secret (a Snyk API
+#      token with org-level access). Without it the scan reports 401; set the
+#      secret, or rely on the GitHub App path instead.
+#
+# To enable: add `SNYK_TOKEN` to the repository Actions secrets, then this
+# workflow runs on every push/PR.
 
 name: Snyk Security Scan
 
@@ -23,42 +26,54 @@ jobs:
     permissions:
       contents: read
       security-events: write
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run Snyk to check for vulnerabilities (Go / server)
+      - name: Snyk test (Go / server)
+        if: env.SNYK_TOKEN != ''
         uses: snyk/actions/golang@master
         continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: test
-          args: --severity-threshold=high --file=server/go.mod --project-name=herbst-mud-server
-          sarif-file-output: snyk-server.sarif
+          args: >-
+            --severity-threshold=high
+            --file=server/go.mod
+            --project-name=herbst-mud-server
+            --sarif-file-output=snyk-server.sarif
 
-      - name: Run Snyk to check for vulnerabilities (admin npm)
+      - name: Snyk test (admin npm)
+        if: env.SNYK_TOKEN != ''
         uses: snyk/actions/node@master
         continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: test
-          args: --severity-threshold=high --file=admin/package.json --project-name=herbst-mud-admin
-          sarif-file-output: snyk-admin.sarif
+          args: >-
+            --severity-threshold=high
+            --file=admin/package.json
+            --project-name=herbst-mud-admin
+            --sarif-file-output=snyk-admin.sarif
 
-      - name: Run Snyk to check for vulnerabilities (web-client npm)
+      - name: Snyk test (web-client npm)
+        if: env.SNYK_TOKEN != ''
         uses: snyk/actions/node@master
         continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: test
-          args: --severity-threshold=high --file=web-client/package.json --project-name=herbst-mud-web-client
-          sarif-file-output: snyk-webclient.sarif
+          args: >-
+            --severity-threshold=high
+            --file=web-client/package.json
+            --project-name=herbst-mud-web-client
+            --sarif-file-output=snyk-webclient.sarif
 
-      - name: Upload SARIF files to GitHub Security tab
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
+      - name: Upload SARIF to Security tab
+        if: env.SNYK_TOKEN != '' && (hashFiles('*.sarif') != '')
+        uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: .
+          sarif_file: "."
+
+      - name: Warn if SNYK_TOKEN not configured
+        if: env.SNYK_TOKEN == ''
+        run: echo "::warning::SNYK_TOKEN secret not set — Snyk workflow skipped. Add it as a repo secret, or rely on the Snyk GitHub App integration."
