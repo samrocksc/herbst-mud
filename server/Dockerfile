@@ -1,5 +1,5 @@
 # HerbSt REST API Server Dockerfile
-FROM golang:1.25-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 
@@ -12,6 +12,7 @@ COPY . ./
 
 # Build the binary
 RUN go build -o herbst-web .
+RUN go build -o herbst-migrate ./cmd/migrate
 
 # Final stage
 FROM alpine:latest
@@ -23,6 +24,7 @@ WORKDIR /root/
 
 # Copy binary from builder
 COPY --from=builder /app/herbst-web .
+COPY --from=builder /app/herbst-migrate .
 
 # Expose API port
 EXPOSE 8080

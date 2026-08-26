@@ -1,6 +1,6 @@
 module herbst-server
 
-go 1.25.4
+go 1.26
 
 require (
 	entgo.io/ent v0.14.5
