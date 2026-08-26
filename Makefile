@@ -17,9 +17,14 @@ build-web: ## Build web server binary
 	@echo "Building web server..."
 	@cd server && go build -o herbst-web . && echo "Web binary built"
 
+build-migrate: ## Build schema migration binary
+	@echo "Building migration binary..."
+	@cd server && go build -o herbst-migrate ./cmd/migrate && echo "Migration binary built"
+
 build-all: ## Build all server binaries
 	@$(MAKE) build
 	@$(MAKE) build-web
+	@$(MAKE) build-migrate
 
 start: ## Start the SSH server in the background (uses pre-built binary)
 	@echo "Starting SSH server on port 4444..."

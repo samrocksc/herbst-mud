@@ -1,4 +1,23 @@
 services:
+  # Schema migration runner — runs ent migration, exits, then the API starts.
+  migrate:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    command: ["./herbst-migrate"]
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USER=${DB_USER:-herbst}
+      - DB_PASSWORD=${DB_PASSWORD:-herbst_password}
+      - DB_NAME=${DB_NAME:-herbst_mud}
+    depends_on:
+      postgres:
+        condition: service_started
+    networks:
+      - herbst-network
+
   # SSH Server (herbst/)
   mud-ssh:
     build:
@@ -41,6 +60,7 @@ services:
       - SERVER_HOST=0.0.0.0
     depends_on:
       - postgres
+      - migrate
     networks:
       - herbst-network
 

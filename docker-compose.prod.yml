@@ -45,13 +45,34 @@ services:
       retries: 5
       start_period: 30s
 
+  # ── Schema Migration (ent) ─────────────────────────────────────────
+  # Runs the ent schema migration as a one-shot before the API starts.
+  # Uses the same -api image; the herbst-migrate binary is built into it.
+  migrate:
+    image: ghcr.io/samrocksc/herbst-mud-api:latest
+    container_name: herbst-migrate
+    restart: "no"
+    command: ["./herbst-migrate"]
+    environment:
+      - DATABASE_URL=postgres://${DB_USER:-herbst}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-herbst_mud}?sslmode=disable
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-herbst}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME:-herbst_mud}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - herbst
+
   # ── REST API (Go/Gin) ─────────────────────────────────────────────
   web:
     image: ghcr.io/samrocksc/herbst-mud-api:latest
     container_name: herbst-api
     restart: unless-stopped
     environment:
-      - DATABASE_URL=postgres://${DB_USER:-herbst}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-herbst_mud}?sslmode=disable
+      - DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-herbst_mud}?sslmode=disable
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=${DB_USER:-herbst}
@@ -63,6 +84,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     networks:
       - herbst
     healthcheck:
