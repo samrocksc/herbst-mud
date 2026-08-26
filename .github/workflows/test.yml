@@ -1,0 +1,74 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  server:
+    name: Server tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          cache-dependency-path: server/go.sum
+
+      - name: Build server
+        working-directory: server
+        run: go build ./...
+
+      - name: Run server tests
+        working-directory: server
+        run: go test ./... -count=1
+
+  herbst-tui:
+    name: Herbst TUI tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26"
+          cache-dependency-path: herbst/go.sum
+
+      - name: Build herbst
+        working-directory: herbst
+        run: go build ./...
+
+      - name: Run herbst TUI tests
+        working-directory: herbst
+        run: go test ./... -count=1
+
+  frontend:
+    name: Frontend builds (admin + web-client)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install + typecheck admin
+        working-directory: admin
+        run: |
+          npm ci
+          npx tsc --noEmit
+
+      - name: Install + typecheck web-client
+        working-directory: web-client
+        run: |
+          npm ci
+          npx tsc --noEmit
